@@ -1,2 +1,4 @@
+# WORK IN PROGRESS
+
 # FBCSP Python
- Python implemementation of the FBCSP algorithm
+Python implemementation of the FBCSP algorithm
