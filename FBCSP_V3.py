@@ -19,7 +19,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
 #%%
 
-class FBCSP_V2():
+class FBCSP_V3():
     
     def __init__(self, data_dict, fs, freqs_band = None, filter_order = 3):
         self.fs = fs
@@ -40,8 +40,15 @@ class FBCSP_V2():
         self.filterBankFunction(filter_order)
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    
+        # CSP filters evaluation and application
+        
         # CSP filter evaluation
-        self.W_list = self.evaluateW()
+        self.W_list_band = []
+        self.evaluateW()
+        
+        # CSP filter application
+        self.features_band_list = []
+        self.spatialFilteringAndFeatureExtraction()
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         
@@ -116,50 +123,43 @@ class FBCSP_V2():
     def evaluateW(self):
         """
         Evaluate the spatial filter of the CSP algorithm for each filtered signal inside self.filtered_band_signal_list
-        Results are saved inside self.W_list_band.
-
+        Results are saved inside self.W_list_band.    
         """
-        
-        self.W_list_band = []
         
         for filt_trial_dict in self.filtered_band_signal_list:
             # Retrieve the key (class)
             keys = list(filt_trial_dict.keys())
             
-            # List for the filter for each class
-            W_list_class = []
             
-            for key in keys:
-                trials_1, trials_2 = self.retrieveBinaryTrials(filt_trial_dict, key)
+            keys = list(filt_trial_dict.keys())
+            trials_1 = filt_trial_dict[keys[0]]
+            trials_2 = filt_trial_dict[keys[1]]
+        
+            # Evaluate covariance matrix for the two classes
+            cov_1 = self.trialCovariance(trials_1)
+            cov_2 = self.trialCovariance(trials_2)
+            R = cov_1 + cov_2
             
-                # Evaluate covariance matrix for the two classes
-                cov_1 = self.trialCovariance(trials_1)
-                cov_2 = self.trialCovariance(trials_2)
-                R = cov_1 + cov_2
-                
-                # Evaluate whitening matrix
-                P = self.whitening(R)
-                
-                # The mean covariance matrices may now be transformed
-                cov_1_white = np.dot(P, np.dot(cov_1, np.transpose(P)))
-                cov_2_white = np.dot(P, np.dot(cov_2, np.transpose(P)))
-                
-                # Since CSP requires the eigenvalues and eigenvector be sorted in descending order we find and sort the generalized eigenvalues and eigenvector
-                E, U = la.eig(cov_1_white, cov_2_white)
-                order = np.argsort(E)
-                order = order[::-1]
-                E = E[order]
-                U = U[:, order]
-                
-                # The projection matrix (the spatial filter) may now be obtained
-                W = np.dot(np.transpose(U), P)
-                
-                # Save the filter for each class
-                W_list_class.append(W)
+            # Evaluate whitening matrix
+            P = self.whitening(R)
             
-            self.W_list_band.append(W_list_class)
+            # The mean covariance matrices may now be transformed
+            cov_1_white = np.dot(P, np.dot(cov_1, np.transpose(P)))
+            cov_2_white = np.dot(P, np.dot(cov_2, np.transpose(P)))
             
+            # Since CSP requires the eigenvalues and eigenvector be sorted in descending order we find and sort the generalized eigenvalues and eigenvector
+            E, U = la.eig(cov_1_white, cov_2_white)
+            order = np.argsort(E)
+            order = order[::-1]
+            E = E[order]
+            U = U[:, order]
             
+            # The projection matrix (the spatial filter) may now be obtained
+            W = np.dot(np.transpose(U), P)
+            
+            self.W_list_band.append(W)
+      
+    
     def trialCovariance(self, trials):
         """
         Calculate the covariance for each trial and return their average
@@ -228,6 +228,125 @@ class FBCSP_V2():
             x = np.dot(np.dot(V, D), V.T)
             
         return x
+    
+    def spatialFilteringAndFeatureExtraction(self):
+        # Cycle through frequency band and relative CSP filter
+        for filt_trial_dict, W in zip(self.filtered_band_signal_list, self.W_list_band):
+            # Features dict for the current frequency band
+            features_dict = {}
+            
+            # Cycle through the classes
+            for key in filt_trial_dict.keys():
+                # Applying spatial filter
+                tmp_trial = self.spatialFilteringW(filt_trial_dict[key], W)
+                
+                # Features evaluation
+                features_dict[key] = self.logVarEvaluation(tmp_trial)
+            
+            self.features_band_list.append(features_dict)
+                
+    
+    def spatialFilteringW(self, trials, W):
+        # Allocate memory for the spatial fitlered trials
+        trials_csp = np.zeros(trials.shape)
+        
+        # Apply spatial fitler
+        for i in range(trials.shape[0]): trials_csp[i, :, :] = W.dot(trials[i, :, :])
+            
+        return trials_csp
+    
+    
+    def logVarEvaluation(self, trials):
+        """
+        Evaluate the log (logarithm) var (variance) of the trial matrix along the samples axis.
+        The sample axis is the axis number 2, counting axis as 0,1,2. 
+    
+        Parameters
+        ----------
+        trials : numpy 3D-matrix
+            Trial matrix. The dimensions must be trials x channel x samples
+    
+        Returns
+        -------
+        features : Numpy 2D-matrix
+            Return the features matrix. DImension will be trials x channel
+    
+        """
+        features = np.var(trials, 2)
+        features = np.log(features)
+        
+        return features
+    
+    
+    def plotFeaturesSeparate(self, width = 0.3):
+        fig, axs = plt.subplots(len(self.features_band_list), 1, figsize = (15, 10))
+        for features_dict, ax in zip(self.features_band_list, axs):
+            keys = list(features_dict.keys())
+            features_1 = features_dict[keys[0]]
+            features_2 = features_dict[keys[1]]
+            
+            x1 = np.linspace(1, features_1.shape[1], features_1.shape[1])
+            x2 = x1 + 0.35
+            
+            y1 = np.mean(features_1, 0)
+            y2 = np.mean(features_2, 0)
+            
+            ax.bar(x1, y1, width = width, color = 'b', align='center')
+            ax.bar(x2, y2, width = width, color = 'r', align='center')
+            ax.set_xlim(0.5, 59.5)
+            
+            
+    def plotFeatuersTogetherV1(self, width = 0.3, figsize = (15, 10)):
+        
+        y1 = np.zeros(0)
+        y2 = np.zeros(0)
+        for features_dict in self.features_band_list:
+            keys = list(features_dict.keys())
+            features_1 = features_dict[keys[0]]
+            features_2 = features_dict[keys[1]]
+        
+            tmp_y1 = np.mean(features_1, 0)
+            tmp_y2 = np.mean(features_2, 0)
+            
+            y1 = np.concatenate((y1, tmp_y1))
+            y2 = np.concatenate((y2, tmp_y2))
+            
+        y1 = np.sort(y1)
+        y2 = np.flip(np.sort(y2))
+        
+        x1 = np.linspace(1, len(y1), len(y1))
+        x2 = x1 + 0.35
+        
+        fig, ax = plt.subplots(figsize = figsize)
+        ax.bar(x1, y1, width = width, color = 'b', align='center')
+        ax.bar(x2, y2, width = width, color = 'r', align='center')
+        
+        
+    def plotFeatuersTogetherV2(self, width = 0.3, figsize = (15, 10)):
+        
+        y1 = np.zeros(0)
+        y2 = np.zeros(0)
+        for features_dict in self.features_band_list:
+            keys = list(features_dict.keys())
+            features_1 = features_dict[keys[0]]
+            features_2 = features_dict[keys[1]]
+        
+            tmp_y1 = np.mean(features_1, 0)
+            tmp_y2 = np.mean(features_2, 0)
+            
+            y1 = np.concatenate((y1, tmp_y1))
+            y2 = np.concatenate((y2, tmp_y2))
+            
+        y1 = np.sort(y1)
+        y2 = np.flip(np.sort(y2))
+        
+        x1 = np.linspace(1, len(y1), len(y1))
+        x2 = x1 + 0.35
+        
+        fig, ax = plt.subplots(figsize = figsize)
+        ax.bar(x1, y1, width = width, color = 'b', align='center')
+        ax.bar(x2, y2, width = width, color = 'r', align='center')
+        
     
     
     

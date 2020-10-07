@@ -19,7 +19,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 #%% Function for 100Hz dataset (Dataset IV-1) and data handling
 # This function are specific for the dataset IV-1
 
-def loadDataset100Hz(path, idx, type_dataset):
+def loadDatasetD1_100Hz(path, idx, type_dataset):
     tmp = loadmat(path + idx + '.mat');
     data = tmp['cnt'].T
     
@@ -60,7 +60,7 @@ def retrieveChannelName(channel_array):
     return channel_list
 
 
-def computeTrial(data, cue_position, labels, fs, class_label = None):
+def computeTrialD1_100Hz(data, cue_position, labels, fs, class_label = None):
     """
     Transform the 2D data matrix of dimensions channels x samples in various 3D matrix of dimensions trials x channels x samples.
     The number of 3D matrix is equal to the number of class.
@@ -111,7 +111,132 @@ def computeTrial(data, cue_position, labels, fs, class_label = None):
             
     return trials_dict
 
+#%%
 
+def loadDatasetD2(path, idx):
+    """
+    Function to load the dataset 2 of the BCI competition.
+    N.B. This dataset is a costum dataset crated from the original gdf file using the MATLAB script 'dataset_transform.m'
+
+    Parameters
+    ----------
+    path : string
+        Path to the folder.
+    idx : int.
+        Index of the file.
+
+    Returns
+    -------
+    data : Numpy 2D matrix
+        Numpy matrix with the data. Dimensions are "samples x channel".
+    event_matrix : Numpy matrix
+        Matrix of dimension 3 x number of event. The first row is the position of the event, the second the type of the event and the third its duration
+
+    """
+    path_data = path + '/' + str(idx) + '_data.mat' 
+    path_event = path + '/' + str(idx) + '_label.mat'
+    
+    data = loadmat(path_data)['data']
+    event_matrix = loadmat(path_event)['event_matrix']
+    
+    return data, event_matrix
+    
+    
+def computeTrialD2(data, event_matrix):
+    """
+    Convert the data matrix obtained by loadDatasetD2() into a trials 3D matrix
+
+    Parameters
+    ----------
+    data : Numpy 2D matrix
+        Input data obtained by loadDatasetD2().
+    event_matrix : Numpy 2D matrix
+        event_matrix obtained by loadDatasetD2().
+
+    Returns
+    -------
+    trials : Numpy 3D matrix
+        Matrix with dimensions "n. trials x channel x n. samples per trial".
+    label : Numpy vector
+        Vector with a label for each trials. For more information read http://www.bbci.de/competition/iv/desc_2a.pdf
+
+    """
+    event_position = event_matrix[:, 0]
+    event_type = event_matrix[:, 1]
+    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Remove corrupted trials
+    event_corrupt_mask_1 = event_type == 1023
+    event_corrupt_mask_2 = event_type == 1023
+    for i in range(len(event_corrupt_mask_2)):
+        if(event_corrupt_mask_2[i] == True): 
+            # Start of the trial
+            event_corrupt_mask_1[i - 1] = True
+            # Type of the trial
+            event_corrupt_mask_1[i + 1] = True
+            
+    
+    event_position = event_position[np.logical_not(event_corrupt_mask_1)]
+    event_type = event_type[np.logical_not(event_corrupt_mask_1)]
+    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Since trials have different length I crop them all to the minimum length
+    
+    # Retrieve event start
+    event_start = event_position[event_type == 768]
+    
+    # Evaluate event length
+    length_list = []
+    for i in range(len(event_start) - 1): length_list.append(event_start[i + 1] - event_start[i])
+    length_list.append(data.shape[0] - event_start[-1])
+    min_length = min(length_list)
+    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Create the trials matrix
+    trials = np.zeros((len(event_start), data.shape[1], min_length))
+    data = data.T
+    
+    for i in range(trials.shape[0]):
+        trials[i, :, :] = data[:, event_start[i]:(event_start[i] + min_length)]
+    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Create the label vector
+    label = event_type[event_type != 768]
+    label = label[label != 32766]
+    
+    return trials, label
+
+
+def createTrialsDictD2(trials, label, label_name = None):
+    """
+    Covnert the trials matrix and the label vector in a dict.
+
+    Parameters
+    ----------
+    trials : Numpy 2D matrix
+        trials matrix obtained by computeTrialD2().
+    label : Numpy vector
+        vector trials obtained by computeTrialD2().
+    label_name : dicitonary, optional
+        If passed must be a dictionart where the keys are the value 769, 770, 771, 772. For each key you must insert the corresponding label.
+        See the table 2 at http://www.bbci.de/competition/iv/desc_2a.pdf for  more information.
+        The default is None.
+
+    Returns
+    -------
+    trials_dict : TYPE
+        DESCRIPTION.
+
+    """
+    trials_dict = {}
+    keys = np.unique(label)
+    
+    for key in label:
+        if(label_name != None): trials_dict[label_name[key]] = trials[label == key, :, :]
+        else: trials_dict[key] = trials[label == key, :, :] 
+    
+    return trials_dict
+    
       
 #%% Other
 
