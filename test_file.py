@@ -41,12 +41,11 @@ for idx in tmp_string:
     
     FBCSP_clf = FBCSP_V3(trials_dict, fs)
     
-    # FBCSP_clf.plotFeaturesSeparate()
-    FBCSP_clf.plotFeatuersTogetherV1()
-#     CSP_clf.plotPSD(15, 12)
+    FBCSP_clf.plotFeaturesSeparate()
+    # FBCSP_clf.plotFeatuersTogether()
+
     
-#     FBCSP_clf.trainClassifier()
-#     FBCSP_clf.trainLDA()
+    # FBCSP_clf.trainClassifier()
     
 #     CSP_clf.trainClassifier(classifier = SVC(kernel = 'linear'))
     
