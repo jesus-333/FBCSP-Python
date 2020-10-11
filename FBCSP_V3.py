@@ -27,6 +27,8 @@ class FBCSP_V3():
         self.fs = fs
         self.trials_dict = data_dict
         self.n_features = n_features
+        self.n_trials_class_1 = data_dict[list(data_dict.keys())[0]].shape[0]
+        self.n_trials_class_2 = data_dict[list(data_dict.keys())[1]].shape[0]
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         #Filter data section
@@ -50,6 +52,11 @@ class FBCSP_V3():
         # CSP filter application
         self.features_band_list = []
         self.spatialFilteringAndFeatureExtraction()
+        
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Training of the classifier
+        if(classifier != None): self.trainClassifier(classifier = classifier)
+        else: self.trainClassifier() 
         
         
     def filterBankFunction(self, filter_order = 3):
@@ -228,41 +235,6 @@ class FBCSP_V3():
             
         return x
     
-    def spatialFilteringAndFeatureExtraction(self):
-        # Cycle through frequency band and relative CSP filter
-        for filt_trial_dict, W in zip(self.filtered_band_signal_list, self.W_list_band):
-            # Features dict for the current frequency band
-            features_dict = {}
-            
-            # Cycle through the classes
-            for key in filt_trial_dict.keys():
-                # Applying spatial filter
-                tmp_trial = self.spatialFilteringW(filt_trial_dict[key], W)
-                
-                # Features evaluation
-                features_dict[key] = self.logVarEvaluation(tmp_trial)
-            
-            self.features_band_list.append(features_dict)
-        
-        # Evaluate mutual information between features
-        self.mutual_information_list = self.computeFeaturesMutualInformation()
-        
-        # Select features to use for classification
-        for mutual_information in self.mutual_information_list:
-            sorted_MI_index = np.flip(np.argsort(mutual_information))
-            
-                
-    
-    def spatialFilteringW(self, trials, W):
-        # Allocate memory for the spatial fitlered trials
-        trials_csp = np.zeros(trials.shape)
-        
-        # Apply spatial fitler
-        for i in range(trials.shape[0]): trials_csp[i, :, :] = W.dot(trials[i, :, :])
-            
-        return trials_csp
-    
-    
     def logVarEvaluation(self, trials):
         """
         Evaluate the log (logarithm) var (variance) of the trial matrix along the samples axis.
@@ -284,83 +256,65 @@ class FBCSP_V3():
         
         return features
     
-         
-    def trainClassifier(self, n_features = 1, train_ratio = 0.75, classifier = None):
-        """
-        Divide the data in train set and test set and used the data to train the classifier.
-
-        Parameters
-        ----------
-        n_features : int, optional
-            The number of mixture channel to use in the classifier. It must be even and at least as big as 2. The default is 2.
-        train_ratio : doble, optional
-            The proportion of the data to used as train dataset. The default is 0.75.
-        classifier : sklearnn classifier, optional
-            Classifier used for the problem. It must be a sklearn classifier. If no classfier was provided the fucntion use the LDA classifier.
-
-
-        """
-        self.n_features = n_features
-        
-        features_1, features_2 = self.extractFeatures(n_features)
-        print(features_1.shape)
     
-        # Save both features in a single data matrix
-        data_matrix = np.zeros((features_1.shape[0] + features_2.shape[0], features_1.shape[1]))
-        data_matrix[0:features_1.shape[0], :] = features_1
-        data_matrix[features_1.shape[0]:, :] = features_2
-        self.tmp_data_matrix = data_matrix
+    def spatialFilteringAndFeatureExtraction(self):
+        # Cycle through frequency band and relative CSP filter
+        for filt_trial_dict, W in zip(self.filtered_band_signal_list, self.W_list_band):
+            # Features dict for the current frequency band
+            features_dict = {}
+            
+            # Cycle through the classes
+            for key in filt_trial_dict.keys():
+                # Applying spatial filter
+                tmp_trial = self.spatialFilteringW(filt_trial_dict[key], W)
+                
+                # Features evaluation
+                features_dict[key] = self.logVarEvaluation(tmp_trial)
+            
+            self.features_band_list.append(features_dict)
         
-        # Create the label vector
-        label = np.zeros(data_matrix.shape[0])
-        label[0:features_1.shape[0]] = 1
-        label[features_1.shape[0]:] = 2
-        self.tmp_label = label
+        # Evaluate mutual information between features
+        self.mutual_information_list = self.computeFeaturesMutualInformation()
+        self.mutual_information_vector, self.other_info_matrix = self.changeShapeMutualInformationList()
         
-        # # Shuffle the data
-        # perm = np.random.permutation(len(label))
-        # label = label[perm]
-        # data_matrix = data_matrix[perm, :]
+        # Select features to use for classification
+        self.classifier_features = self.selectFeatures()
         
-        # # Select the portion of data used during training
-        # if(train_ratio <= 0 or train_ratio >= 1): train_ratio = 0.75
-        # index_training = int(data_matrix.shape[0] * train_ratio)
-        # train_data = data_matrix[0:index_training, :]
-        # train_label = label[0:index_training]
-        # test_data = data_matrix[index_training:, :]
-        # test_label = label[index_training:]
-        # self.tmp_train = [train_data, train_label]
-        # self.tmp_test = [test_data, test_label]
+    def spatialFilteringW(self, trials, W):
+        # Allocate memory for the spatial fitlered trials
+        trials_csp = np.zeros(trials.shape)
         
-        # # Select classifier
-        # if(classifier == None): self.classifier = LDA()
-        # else: self.classifier = classifier
-        
-        # # Train Classifier
-        # self.classifier.fit(train_data, train_label)
-        # print("Accuracy on TRAIN set: ", self.classifier.score(train_data, train_label))
-        
-        # # Test parameters
-        # print("Accuracy on TEST set: ", self.classifier.score(test_data, test_label), "\n")
-        
-    def extractFeatures(self, n_features = 1):
-        a = 2
-        
+        # Apply spatial fitler
+        for i in range(trials.shape[0]): trials_csp[i, :, :] = W.dot(trials[i, :, :])
+            
+        return trials_csp
+    
     
     def computeFeaturesMutualInformation(self):
+        """
+        Select the first and last n columns of the various features matrix and compute their mutual inforamation.
+        The value of n is self.n_features
+
+        Returns
+        -------
+        mutual_information_list : List of numpy matrix
+            List with the mutual information of the various features.
+
+        """
+        
         mutual_information_list = []
         
+        # Create index for select the first and last m column
         idx = []
-        
         for i in range(self.n_features): idx.append(i)
-        for i in reversed(idx): idx.append(-(idx + 1))
+        for i in reversed(idx): idx.append(-(i + 1))
         
         # Cycle through the different band
         for features_dict in self.features_band_list:
             # Retrieve features for that band
-            keys = list[features_dict.keys()]
-            feat_1 = features_dict[keys[0]]
-            feat_2 = features_dict[keys[1]]
+            keys = list(features_dict.keys())
+            feat_1 = features_dict[keys[0]][:, idx]
+            feat_2 = features_dict[keys[1]][:, idx]
             
             # Save features in a single matrix
             all_features = np.zeros((feat_1.shape[0] + feat_2.shape[0], self.n_features * 2))            
@@ -375,62 +329,244 @@ class FBCSP_V3():
             mutual_information_list.append(tmp_mutual_information)
             
         return mutual_information_list
+    
+    
+    def changeShapeMutualInformationList(self):
+        # 1D-Array with all the mutual information value
+        mutual_information_vector = np.zeros(9 * 2 * self.n_features)
             
-    def extractFeaturesVVV(self, n_features = 1):
+        # Since the CSP features are coupled (First with last etc) in this matrix I save the couple.
+        # I will also save the original band and the position in the original band
+        other_info_matrix = np.zeros((len(mutual_information_vector), 4))
+        
+        for i in range(len(self.mutual_information_list)):
+            mutual_information = self.mutual_information_list[i]
+            
+            for j in range(self.n_features * 2):
+                # Acual index for the various vector
+                actual_idx = i * self.n_features * 2 + j
+                
+                # Save the various information
+                mutual_information_vector[actual_idx] = mutual_information[j]
+                other_info_matrix[actual_idx, 0] = i * self.n_features * 2 + ((self.n_features * 2) - (j + 1))
+                other_info_matrix[actual_idx, 1] = actual_idx
+                other_info_matrix[actual_idx, 2] = i
+                other_info_matrix[actual_idx, 3] = j
+                
+        return mutual_information_vector, other_info_matrix
+            
+    
+    def selectFeatures(self):
         """
-        Extract the first n_features and the last n_features
+        Select n features for classification. n can vary between self.n_features and (2 * self.n_features).
+        The features selected are the self.n_features with the highest mutual information. 
+        Since the CSP features are coupled if the original couple was not selected we add to the list of features the various couple.
+
+        Returns
+        -------
+        complete_list_of_features : List of tuple
+            List that contatin the band for the filter and the position inside the original band.
+
+        """
+        
+        # Sort features in order of mutual information
+        sorted_MI_features_index = np.flip(np.argsort(self.mutual_information_vector))
+        sorted_other_info = self.other_info_matrix[sorted_MI_features_index, :]
+        
+        complete_list_of_features = []
+        selected_features = sorted_other_info[:, 1][0:self.n_features]
+        
+        for i in range(self.n_features):
+            # Current features (NOT USED)(added just for clarity during coding)
+            # current_features = sorted_other_info[i, 1]
+            
+            # Twin/Couple feature of the current features
+            current_features_twin = sorted_other_info[i, 0]
+            
+            if(current_features_twin in selected_features): 
+                # If I also select its counterpart I only add the current feaures because the counterpart will be added in future iteration of the cycle
+                
+                # Save the features as tuple with (original band, original position in the original band)
+                features_item = (int(sorted_other_info[i, 2]), int(sorted_other_info[i, 3]))
+                
+                # Add the element to the features vector
+                complete_list_of_features.append(features_item)
+            else: 
+                # If I not select its counterpart I addo both the current features and it's counterpart
+                
+                # Select and add the current feature
+                features_item = (int(sorted_other_info[i, 2]), int(sorted_other_info[i, 3]))
+                complete_list_of_features.append(features_item)
+                
+                # Select and add the twin/couple feature
+                idx = sorted_other_info[:, 1] == current_features_twin
+                features_item = (int(sorted_other_info[idx, 2][0]), int(sorted_other_info[idx, 3][0]))
+                complete_list_of_features.append(features_item)
+                
+        return sorted(complete_list_of_features)
+                
+    
+    def extractFeaturesForTraining(self, n_features = 1):
+        # Tracking variable of the band
+        old_band = -1
+        
+        # Return matrix
+        features_1 = np.zeros((self.n_trials_class_1, len(self.classifier_features)))
+        features_2 = np.zeros((self.n_trials_class_2, len(self.classifier_features)))
+        
+        # Cycle through the different features
+        for i in range(len(self.classifier_features)):
+            # Retrieve the position of the features
+            features_position = self.classifier_features[i]
+            
+            # Band of the selected feaures
+            current_features_band = features_position[0]
+            
+            # Check if the band is the same of the previous iteration
+            if(current_features_band != old_band):
+                # In this case the band is not the same of the previous iteration
+                
+                old_band = current_features_band
+                
+                # Retrieve the dictionary with the features of the two classes for the current band
+                current_band_features_dict = self.features_band_list[current_features_band]
+                
+                # Retrieve the matrix of features for the two classes
+                keys = list(current_band_features_dict.keys())
+                tmp_feat_1 = current_band_features_dict[keys[0]]
+                tmp_feat_2 = current_band_features_dict[keys[1]]
+                
+                # Squeeze the features matrix
+                tmp_feat_1 = self.squeezeFeatures(tmp_feat_1)
+                tmp_feat_2 = self.squeezeFeatures(tmp_feat_2)
+                
+                # Extract the features
+                features_1[:, i] = tmp_feat_1[:, features_position[1]]
+                features_2[:, i] = tmp_feat_2[:, features_position[1]]
+                
+            else: 
+                # In this case I'm in the same band of the previous iteration
+                
+                # Extract the features
+                features_1[:, i] = tmp_feat_1[:, features_position[1]]
+                features_2[:, i] = tmp_feat_2[:, features_position[1]]
+        
+                
+        return features_1, features_2
+    
+    def squeezeFeatures(self, features_matrix):
+        """
+        Given a trial matrix with dimension "n_trials x n_features" this function select the first and last n columns.
+        n is the number self.n_features.
+
+        """
+        
+        # Create index for select the first and last n column
+        idx = []
+        for i in range(self.n_features): idx.append(i)
+        for i in reversed(idx): idx.append(-(i + 1))
+        
+        # Create the new matrix for the feaures
+        squeeze_features = np.zeros((features_matrix.shape[0], self.n_features * 2))
+        
+        # Select the firs and last n features
+        squeeze_features[:, :] = features_matrix[:, idx]
+                 
+        return squeeze_features
+        
+    def trainClassifier(self, train_ratio = 0.75, classifier = None):
+        """
+        Divide the data in train set and test set and used the data to train the classifier.
 
         Parameters
         ----------
         n_features : int, optional
-            Number of features to extract from each side. The default is 2.
+            The number of mixture channel to use in the classifier. It must be even and at least as big as 2. The default is 2.
+        train_ratio : doble, optional
+            The proportion of the data to used as train dataset. The default is 0.75.
+        classifier : sklearnn classifier, optional
+            Classifier used for the problem. It must be a sklearn classifier. If no classfier was provided the fucntion use the LDA classifier.
+
 
         """
-                
-        # Creation of hte features matrix
-        features_dict = self.features_band_list[0]
-        keys = list(features_dict.keys())
-        features_1_tmp = features_dict[keys[0]]
-        features_2_tmp = features_dict[keys[1]]
-
-        if(n_features < 1 or n_features > features_1_tmp.shape[1]): n_features = 2
-        self.n_features = n_features
-
-        features_1 = np.zeros((features_1_tmp.shape[0], 2 * n_features * len(self.features_band_list)))
-        features_2 = np.zeros((features_2_tmp.shape[0], 2 * n_features * len(self.features_band_list)))             
         
-        for features_dict, i in zip(self.features_band_list, range(len(self.features_band_list))):
-            keys = list(features_dict.keys())
-            features_1_tmp = features_dict[keys[0]]
-            features_2_tmp = features_dict[keys[1]]
-            
-            # Select the first features
-            for j in range(n_features):
-                features_1[:, j * i] = features_1_tmp[:, j]
-                features_2[:, j * i] = features_2_tmp[:, j]
-                
-            # Select the last features
-            for j in range(1, n_features + 1):
-                features_1[:, -j * i] = features_1_tmp[:, -j]
-                features_2[:, -j * i] = features_2_tmp[:, -j]
-        
-        # features_1 = np.min(features_1, 1)
-        # features_2 = np.min(features_2, 1)
-
-        return features_1, features_2
+        features_1, features_2 = self.extractFeaturesForTraining()
     
-    def getMinFeatures(self, features_vet, n_features, reverse):
-        # Return variable of dimension "n. trials x n.features"
-        features_ret = np.zeros((features_vet.shape[0], n_features))
+        # Save both features in a single data matrix
+        data_matrix = np.zeros((features_1.shape[0] + features_2.shape[0], features_1.shape[1]))
+        data_matrix[0:features_1.shape[0], :] = features_1
+        data_matrix[features_1.shape[0]:, :] = features_2
+        self.tmp_data_matrix = data_matrix
         
-        for row, i in zip(features_vet, range(len(features_vet.shape[0]))):
-            tmp_row = np.sort(row)
+        # Create the label vector
+        label = np.zeros(data_matrix.shape[0])
+        label[0:features_1.shape[0]] = 1
+        label[features_1.shape[0]:] = 2
+        self.tmp_label = label
+        
+        # Shuffle the data
+        perm = np.random.permutation(len(label))
+        label = label[perm]
+        data_matrix = data_matrix[perm, :]
+        
+        # Select the portion of data used during training
+        if(train_ratio <= 0 or train_ratio >= 1): train_ratio = 0.75
+        index_training = int(data_matrix.shape[0] * train_ratio)
+        train_data = data_matrix[0:index_training, :]
+        train_label = label[0:index_training]
+        test_data = data_matrix[index_training:, :]
+        test_label = label[index_training:]
+        self.tmp_train = [train_data, train_label]
+        self.tmp_test = [test_data, test_label]
+        
+        # Select classifier
+        if(classifier == None): self.classifier = LDA()
+        else: self.classifier = classifier
+        
+        # Train Classifier
+        self.classifier.fit(train_data, train_label)
+        print("Accuracy on TRAIN set: ", self.classifier.score(train_data, train_label))
+        
+        # Test parameters
+        print("Accuracy on TEST set: ", self.classifier.score(test_data, test_label), "\n")
+        
+    def evaluateTrial(self, trials_matrix, filt = True):
+        # Create index for select the first and last m column
+        idx = []
+        for i in range(self.n_features): idx.append(i)
+        for i in reversed(idx): idx.append(-(i + 1))
+        
+        # List for the features
+        features_list = []
+        
+        # Input for the classifier
+        features_input = np.zeros((trials_matrix.shape[0], len(self.classifier_features)))
+        
+        # Frequency filtering, spatial filtering, features evaluation
+        for i in range(len(self.freqs) - 1):              
+            # "Create" the band
+            band = [self.freqs[i], self.freqs[i+1]]
             
-            if(reverse): tmp_row = np.flip(tmp_row)
+            W = self.W_list_band[i]
             
-            features_ret[i, :] = tmp_row[0:n_features]
+            band_filter_trials_matrix = self.bandFilterTrials(trials_matrix, band[0], band[1])
+            spatial_filter_trial = self.spatialFilteringW(band_filter_trials_matrix, W)
+            features = self.logVarEvaluation(spatial_filter_trial)
             
-        return tmp_row
+            features_list.append(features[:, idx])
+            
+        # Features selection
+        for i in range(len(self.classifier_features)):
+            # Retrieve feature position
+            feature_position = self.classifier_features[i]
+            
+            # Retrieve feature from the evaluated features
+            features_input[:, i] = features_list[feature_position[0]][:, feature_position[0]]
+           
+        # Classify the trials
+        y = self.classifier.predict(features_input)
+        
+        return y
     
     def plotFeaturesSeparate(self, width = 0.3, figsize = (15, 30)):
         fig, axs = plt.subplots(len(self.features_band_list), 1, figsize = figsize)

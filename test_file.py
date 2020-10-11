@@ -21,10 +21,11 @@ from sklearn.svm import SVC
 import time
 
 #%%
-# tmp_string = 'abcdefg'
-tmp_string = 'a'
+tmp_string = 'abcdefg'
+# tmp_string = 'b'
 
 for idx in tmp_string:
+    print(idx)
 
     # Data load and trials extraction (Works only on dataset IV-1-a of BCI competition)
     
@@ -39,7 +40,7 @@ for idx in tmp_string:
     trials_dict = computeTrialD1_100Hz(data, cue_position, labels, fs,other_info['class_label'])
     
     
-    FBCSP_clf = FBCSP_V3(trials_dict, fs)
+    FBCSP_clf = FBCSP_V3(trials_dict, fs, n_features = 3)
     
     FBCSP_clf.plotFeaturesSeparate()
     # FBCSP_clf.plotFeatuersTogether()
