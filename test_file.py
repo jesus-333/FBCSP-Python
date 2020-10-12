@@ -22,7 +22,7 @@ import time
 
 #%%
 tmp_string = 'abcdefg'
-# tmp_string = 'b'
+tmp_string = 'b'
 
 for idx in tmp_string:
     print(idx)
@@ -41,16 +41,11 @@ for idx in tmp_string:
     
     
     FBCSP_clf = FBCSP_V3(trials_dict, fs, n_features = 3)
+    # FBCSP_clf = FBCSP_V3(trials_dict, fs, n_features = 3, classifier = SVC(kernel = 'linear'))
     
-    FBCSP_clf.plotFeaturesSeparate()
-    # FBCSP_clf.plotFeatuersTogether()
-
+    # FBCSP_clf.plotFeaturesSeparateTraining()
+    FBCSP_clf.plotFeaturesScatterTraining(selected_features = [2, 1])
     
-    # FBCSP_clf.trainClassifier()
-    
-#     CSP_clf.trainClassifier(classifier = SVC(kernel = 'linear'))
-    
-#     FBCSP_clf.plotFeaturesScatter()
     
     
 #%%

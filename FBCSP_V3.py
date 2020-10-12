@@ -491,6 +491,8 @@ class FBCSP_V3():
         """
         
         features_1, features_2 = self.extractFeaturesForTraining()
+        self.n_features_for_classification = features_1.shape[1]
+        print("Features used for classification: ", self.n_features_for_classification)
     
         # Save both features in a single data matrix
         data_matrix = np.zeros((features_1.shape[0] + features_2.shape[0], features_1.shape[1]))
@@ -501,7 +503,7 @@ class FBCSP_V3():
         # Create the label vector
         label = np.zeros(data_matrix.shape[0])
         label[0:features_1.shape[0]] = 1
-        label[features_1.shape[0]:] = 2
+        label[features_1.shape[0]:] = -1
         self.tmp_label = label
         
         # Shuffle the data
@@ -530,7 +532,16 @@ class FBCSP_V3():
         # Test parameters
         print("Accuracy on TEST set: ", self.classifier.score(test_data, test_label), "\n")
         
-    def evaluateTrial(self, trials_matrix, filt = True):
+    def evaluateTrial(self, trials_matrix, plot = True):
+        # Compute and extract the features for the training
+        features_input = self.extractFeatures(trials_matrix)
+           
+        # Classify the trials
+        y = self.classifier.predict(features_input)
+        
+        return y
+    
+    def extractFeatures(self, trials_matrix):
         # Create index for select the first and last m column
         idx = []
         for i in range(self.n_features): idx.append(i)
@@ -562,13 +573,10 @@ class FBCSP_V3():
             
             # Retrieve feature from the evaluated features
             features_input[:, i] = features_list[feature_position[0]][:, feature_position[0]]
-           
-        # Classify the trials
-        y = self.classifier.predict(features_input)
-        
-        return y
+            
+        return features_input
     
-    def plotFeaturesSeparate(self, width = 0.3, figsize = (15, 30)):
+    def plotFeaturesSeparateTraining(self, width = 0.3, figsize = (15, 30)):
         fig, axs = plt.subplots(len(self.features_band_list), 1, figsize = figsize)
         for features_dict, ax in zip(self.features_band_list, axs):
             keys = list(features_dict.keys())
@@ -585,6 +593,66 @@ class FBCSP_V3():
             ax.bar(x2, y2, width = width, color = 'r', align='center')
             ax.set_xlim(0.5, 59.5)
             
+    def plotFeaturesScatterTraining(self, selected_features = [0, -1], figsize = (15, 10)):
+        """
+        Plot a mean of the two selected features. 
+
+        Parameters
+        ----------
+        selected_features : List, optional
+            Features to plot. By default the first and the last one are selected. The default is [0, -1].
+            It MUST BE a list of length 2.
+        figsize : Tuple, optional
+            Dimension of the figure. The default is (15, 10).
+
+        """
+        # Check the selected_featurest
+        if(type(selected_features) != list): selected_features = [0, -1]
+        else:
+            # Check length
+            if(len(selected_features) != 2): selected_features = [0, -1]
+            # Check first features
+            if(selected_features[0] >= self.n_features_for_classification): selected_features = [0, -1]
+            if(selected_features[0] < -self.n_features_for_classification): selected_features = [0, -1]
+            # Check second features
+            if(selected_features[1] >= self.n_features_for_classification): selected_features = [0, -1]
+            if(selected_features[1] < -self.n_features_for_classification): selected_features = [0, -1]
+            
+        # Plot cretion
+        fig, ax = plt.subplots(figsize = figsize)
+        
+        # Features extraction
+        features_1, features_2 = self.extractFeaturesForTraining()
+        
+        # Plot features
+        ax.scatter(features_1[:, selected_features[0]], features_1[:, selected_features[1]], color = 'b')
+        ax.scatter(features_2[:, selected_features[0]], features_2[:, selected_features[1]], color = 'r')
+        
+        if(self.classifier.__class__.__name__ == 'LinearDiscriminantAnalysis' or (self.classifier.__class__.__name__ == 'SVC' and self.classifier.kernel == 'linear')):
+            coef = self.classifier.coef_
+            bias = self.classifier.intercept_[0]
+            
+            min_x = min(min(features_1[:, 0]), min(features_2[:, 0]))
+            max_x = max(max(features_1[:, 0]), max(features_2[:, 0]))
+            x = np.linspace(min_x, max_x)
+            
+            y1 = - (bias + coef[0, selected_features[0]] * x) / coef[0, selected_features[1]]
+            
+            ax.plot(x, y1, color = 'k')
+        
+            
+    # def plotFeaturesScatter(self, figsize = (15, 10)):
+    #     # Input for the classifier
+    #     features_input = np.zeros((trials_matrix.shape[0], len(self.classifier_features)))
+        
+    #     # Features selection
+    #     for i in range(len(self.classifier_features)):
+    #         # Retrieve feature position
+    #         feature_position = self.classifier_features[i]
+            
+    #         # Retrieve feature from the evaluated features
+    #         features_input[:, i] = features_list[feature_position[0]][:, feature_position[0]]
+        
             
     def plotFeatuersTogether(self, width = 0.3, figsize = (15, 10)):
         
@@ -613,4 +681,5 @@ class FBCSP_V3():
         ax.bar(x2, y2, width = width, color = 'r', align='center')
         
         
+
         
