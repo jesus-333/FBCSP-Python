@@ -23,12 +23,13 @@ from sklearn.feature_selection import mutual_info_classif as MIBIF
 
 class FBCSP_V3():
     
-    def __init__(self, data_dict, fs, freqs_band = None, filter_order = 3, n_features = 1, classifier = None):
+    def __init__(self, data_dict, fs, freqs_band = None, filter_order = 3, n_features = 2, classifier = None, print_var = False):
         self.fs = fs
         self.trials_dict = data_dict
         self.n_features = n_features
         self.n_trials_class_1 = data_dict[list(data_dict.keys())[0]].shape[0]
         self.n_trials_class_2 = data_dict[list(data_dict.keys())[1]].shape[0]
+        self.print_var = print_var
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         #Filter data section
@@ -492,7 +493,7 @@ class FBCSP_V3():
         
         features_1, features_2 = self.extractFeaturesForTraining()
         self.n_features_for_classification = features_1.shape[1]
-        print("Features used for classification: ", self.n_features_for_classification)
+        if(self.print_var): print("Features used for classification: ", self.n_features_for_classification)
     
         # Save both features in a single data matrix
         data_matrix = np.zeros((features_1.shape[0] + features_2.shape[0], features_1.shape[1]))
@@ -503,7 +504,7 @@ class FBCSP_V3():
         # Create the label vector
         label = np.zeros(data_matrix.shape[0])
         label[0:features_1.shape[0]] = 1
-        label[features_1.shape[0]:] = -1
+        label[features_1.shape[0]:] = 2
         self.tmp_label = label
         
         # Shuffle the data
@@ -527,19 +528,48 @@ class FBCSP_V3():
         
         # Train Classifier
         self.classifier.fit(train_data, train_label)
-        print("Accuracy on TRAIN set: ", self.classifier.score(train_data, train_label))
+        if(self.print_var): print("Accuracy on TRAIN set: ", self.classifier.score(train_data, train_label))
         
         # Test parameters
-        print("Accuracy on TEST set: ", self.classifier.score(test_data, test_label), "\n")
+        if(self.print_var): print("Accuracy on TEST set: ", self.classifier.score(test_data, test_label), "\n")
+        
+        # print("total: ", self.classifier.score(train_data, train_label) * self.classifier.score(test_data, test_label))
         
     def evaluateTrial(self, trials_matrix, plot = True):
+        """
+        Evalaute trial/trials given in input
+
+        Parameters
+        ----------
+        trials_matrix : Numpy 3D matrix
+            Input matrix of trials. The dimension MUST BE "n. trials x n. channels x n.samples".
+            Also in case of single trials the input input dimension must be "1 x n. channels x n.samples".
+        plot : Boolean, optional
+            If set to true will plot the features of the trial. The default is True.
+
+        Returns
+        -------
+        y : Numpy vector
+            Vector with the label of the respective trial. The length of the vector is the number of trials.
+            The label are 1 for class 1 and 2 for class 2.
+        
+        y_prob : Numpy matrix
+            Vector with the label of the respective trial. The length of the vector is the number of trials.
+            The label are 1 for class 1 and 2 for class 2.
+
+        """
+        
         # Compute and extract the features for the training
         features_input = self.extractFeatures(trials_matrix)
            
         # Classify the trials
         y = self.classifier.predict(features_input)
         
-        return y
+        # Evaluate the probabilty
+        y_prob = self.classifier.predict_proba(features_input)
+        
+        return y, y_prob
+    
     
     def extractFeatures(self, trials_matrix):
         # Create index for select the first and last m column
@@ -679,7 +709,6 @@ class FBCSP_V3():
             
         y1 = np.sort(y1)
         y2 = np.flip(np.sort(y2))
-        # print(tmp_y1.shape, y1.shape)
         
         x1 = np.linspace(1, len(y1), len(y1))
         x2 = x1 + 0.35
