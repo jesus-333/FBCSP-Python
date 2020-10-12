@@ -507,6 +507,12 @@ class FBCSP_V3():
         label[features_1.shape[0]:] = 2
         self.tmp_label = label
         
+        # Create the label dict
+        self.tmp_label_dict = {}
+        keys = list(self.features_band_list[0].keys())
+        self.tmp_label_dict[1] = keys[0]
+        self.tmp_label_dict[2] = keys[1]
+        
         # Shuffle the data
         perm = np.random.permutation(len(label))
         label = label[perm]

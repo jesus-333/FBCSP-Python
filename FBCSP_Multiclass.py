@@ -21,6 +21,8 @@ import time
 class FBCSP_Multiclass():
     
     def __init__(self, data_dict, fs, freqs_band = None, filter_order = 3, n_features = 3, classifier = None, print_var = False):
+        self.print_var = print_var
+        
         if(print_var): start = time.time()
         
         self.fs = fs
@@ -28,6 +30,7 @@ class FBCSP_Multiclass():
         
         # List of classifier
         self.FBCSP_list = []
+        self.binary_dict_list = []
         
         # Cycle through different class
         for key, i in zip(data_dict.keys(), range(len(data_dict))):
@@ -37,6 +40,8 @@ class FBCSP_Multiclass():
             
             # Create the binary dict
             tmp_binary_dict = self.createBinaryDict(data_dict, key)
+            self.binary_dict_list.append(tmp_binary_dict)
+            print(tmp_binary_dict.keys())
             if(print_var): print("Binary Dicionary create")
             
             # Create the FBCSP object and train it
@@ -62,6 +67,7 @@ class FBCSP_Multiclass():
         The element of the passed key will be the first item and all other element of the other keys will be the other item.
 
         """
+        
         # Retrieve trial associated with key
         trials_1 = data_dict[key]
         
@@ -70,34 +76,32 @@ class FBCSP_Multiclass():
         
         # Convert them in a numpy array
         tmp_list = []
-        for key in dict_with_other_trials: tmp_list.append(dict_with_other_trials[key])
+        for tmp_key in dict_with_other_trials: tmp_list.append(dict_with_other_trials[tmp_key])
         
-        if(len(tmp_list) == 1):
-            tmp_key = list(dict_with_other_trials.keys())[0]
-            trials_2 = dict_with_other_trials[tmp_key]
-        else:
-            for i in range(len(tmp_list) - 1):
-                if(i == 0):
-                    trials_2 = np.concatenate([tmp_list[0], tmp_list[1]], axis = 0)
-                else: 
-                    trials_2 = np.concatenate([trials_2, tmp_list[i + 1]], axis = 0)
+        for i in range(len(tmp_list) - 1):
+            if(i == 0):
+                trials_2 = np.concatenate([tmp_list[0], tmp_list[1]], axis = 0)
+            else: 
+                trials_2 = np.concatenate([trials_2, tmp_list[i + 1]], axis = 0)
                     
         # Create the binary dictionary
         binary_dict = {}
         binary_dict[key] = trials_1
-        binary_dict['other'] = trials_2
+        binary_dict['zzz_other'] = trials_2
 
         return binary_dict
     
     
     def evaluateTrial(self, trials_matrix):
-        self.prob_list = []
+        self.pred_label_list = []
+        self.pred_prob_list = []
+        self.pred_label_name = []
         
         for clf in self.FBCSP_list:
-            self.prob_predict = clf.evaluateTrial(trials_matrix)[1]
+            prediction = clf.evaluateTrial(trials_matrix)
+            self.pred_label_list.append(prediction[0])
+            self.pred_prob_list.append(prediction[1])
+            self.pred_label_name.append(clf.tmp_label_dict)
             
-        
-        
-        
-
+            
         
