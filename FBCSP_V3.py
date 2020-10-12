@@ -641,18 +641,26 @@ class FBCSP_V3():
             ax.plot(x, y1, color = 'k')
         
             
-    # def plotFeaturesScatter(self, figsize = (15, 10)):
-    #     # Input for the classifier
-    #     features_input = np.zeros((trials_matrix.shape[0], len(self.classifier_features)))
+    def plotFeaturesScatter(self, trials_matrix, selected_features = [0, -1], figsize = (15, 10)):
         
-    #     # Features selection
-    #     for i in range(len(self.classifier_features)):
-    #         # Retrieve feature position
-    #         feature_position = self.classifier_features[i]
-            
-    #         # Retrieve feature from the evaluated features
-    #         features_input[:, i] = features_list[feature_position[0]][:, feature_position[0]]
+        # Check the selected_featurest
+        if(type(selected_features) != list): selected_features = [0, -1]
+        else:
+            # Check length
+            if(len(selected_features) != 2): selected_features = [0, -1]
+            # Check first features
+            if(selected_features[0] >= self.n_features_for_classification): selected_features = [0, -1]
+            if(selected_features[0] < -self.n_features_for_classification): selected_features = [0, -1]
+            # Check second features
+            if(selected_features[1] >= self.n_features_for_classification): selected_features = [0, -1]
+            if(selected_features[1] < -self.n_features_for_classification): selected_features = [0, -1]
         
+        # Features extraction
+        features_input = self.extractFeatures(trials_matrix)
+        
+        # Plotting
+        fig, ax = plt.subplots(figsize = figsize)
+        ax.scatter(features_input[:, selected_features[0]], features_input[:, selected_features[1]])
             
     def plotFeatuersTogether(self, width = 0.3, figsize = (15, 10)):
         
