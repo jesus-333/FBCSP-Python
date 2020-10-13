@@ -110,7 +110,7 @@ class FBCSP_Multiclass():
             
             
         # Check the results (Iteration through trials)
-        for i in range(len(trials_matrix.shape[0])):
+        for i in range(trials_matrix.shape[0]):
             row = self.pred_label_array[i,:]
             
             # Check if there's a conflict between label
