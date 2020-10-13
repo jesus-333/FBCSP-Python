@@ -46,8 +46,8 @@ for idx in tmp_string:
     # FBCSP_clf.plotFeaturesSeparateTraining()
     FBCSP_clf.plotFeaturesScatterTraining(selected_features = [0, -1])
     
-    # trials_test = trials_dict['left']
-    # a, b = FBCSP_clf.evaluateTrial(trials_test)
+    trials_test = trials_dict['left']
+    a, b = FBCSP_clf.evaluateTrial(trials_test)
     
     # print(len(a[a == 1])/len(a))
     # print(len(a[a == 2])/len(a))

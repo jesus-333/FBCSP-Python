@@ -594,10 +594,14 @@ class FBCSP_V3():
             # "Create" the band
             band = [self.freqs[i], self.freqs[i+1]]
             
+            # Retrieve spatial filter
             W = self.W_list_band[i]
             
+            # Frequency and spatial filter
             band_filter_trials_matrix = self.bandFilterTrials(trials_matrix, band[0], band[1])
             spatial_filter_trial = self.spatialFilteringW(band_filter_trials_matrix, W)
+            
+            # Features evaluation
             features = self.logVarEvaluation(spatial_filter_trial)
             
             features_list.append(features[:, idx])
@@ -608,7 +612,7 @@ class FBCSP_V3():
             feature_position = self.classifier_features[i]
             
             # Retrieve feature from the evaluated features
-            features_input[:, i] = features_list[feature_position[0]][:, feature_position[0]]
+            features_input[:, i] = features_list[feature_position[0]][:, feature_position[1]]
             
         return features_input
     
