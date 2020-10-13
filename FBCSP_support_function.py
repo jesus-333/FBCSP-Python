@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-File containing various support function 
+File containing various support function.
 
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Contain the implementation of the FBCSP algorithm. Developed for the train part of dataset IV-1-a of BCI competition.
+Test file for the FBCSP multiclass. Used the dataset 2a of the BCI Competition IV.
 
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)

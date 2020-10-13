@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Contain the implementation of the CSP algorithm. Developed for the train part of dataset IV-1-a of BCI competition.
-This version (V2) implement the algorithm for data with two classes.
+Contain the implementation of the FBCSP algorithm (binary version). 
+This version (V3) is the correct one and the only fully functional. 
 
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
