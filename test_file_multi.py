@@ -46,6 +46,7 @@ for idx in range(1, 2):
     FBCSP_multi_clf = FBCSP_Multiclass(trials_dict, fs, print_var = print_var)
     
     tmp_trial = trials_dict['tongue']
+    # tmp_trial = trials_dict['tongue'][0:1, :, :]
     label = FBCSP_multi_clf.evaluateTrial(tmp_trial)
     
     # a = FBCSP_multi_clf.binary_dict_list
