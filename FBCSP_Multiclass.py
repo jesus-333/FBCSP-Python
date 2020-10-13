@@ -93,15 +93,89 @@ class FBCSP_Multiclass():
     
     
     def evaluateTrial(self, trials_matrix):
-        self.pred_label_list = []
+        self.pred_label_array = np.zeros((trials_matrix.shape[0], len(self.FBCSP_list)))
+        self.pred_prob_array = np.zeros((trials_matrix.shape[0], len(self.FBCSP_list) * 2))
         self.pred_prob_list = []
-        self.pred_label_name = []
+        label_return = np.zeros(trials_matrix.shape[0])
         
-        for clf in self.FBCSP_list:
-            prediction = clf.evaluateTrial(trials_matrix)
-            self.pred_label_list.append(prediction[0])
-            self.pred_prob_list.append(prediction[1])
-            self.pred_label_name.append(clf.tmp_label_dict)
+        # Evaluate the trial(s)
+        for clf, i in zip(self.FBCSP_list, range(len(self.FBCSP_list))):
+            # Predict label
+            label, prob = clf.evaluateTrial(trials_matrix)
             
+            # Save the results
+            self.pred_label_array[:, i] = label
+            self.pred_prob_array[:, (i*2):(i*2+2)] = prob
+            self.pred_prob_list.append(prob)
+            
+            
+        # Check the results (Iteration through trials)
+        for i in range(len(trials_matrix.shape[0])):
+            row = self.pred_label_array[i,:]
+            
+            # Check if there's a conflict between label
+            if(len(row[row == 1]) > 1):
+                # Case 1: The trials is classified as class 1 (specific class) in more than 1 classifier
+                # Search the classification with the highest probability
+                
+                # Variables to track the highest probability
+                max_prob = -1
+                max_prob_position = -1
+                
+                # Cycle through the element of the classifier results
+                for j in range(len(row)):
+                    # If the element is classified as a specific class
+                    if(row[j] == 1):
+                        # Retrieve the probability that belongs to that class
+                        actual_prob = self.pred_prob_list[j][i, 0]
+                        
+                        # Check if the probability is bigger than the probability of the last selected element
+                        if(actual_prob > max_prob):
+                            max_prob = actual_prob
+                            max_prob_position = j
+                
+                # Select the most probably label
+                # (+1 is added to have class 1 with label 1, class 2 with label 2 etc)
+                label_return[i] = max_prob_position + 1
+                
+            elif(np.unique(row)[0] == 2):
+                # Case 2: The trials is classified as 2 (other classes) in all the classifier
+                # Search the classifier more undecided and use it as label
+                
+                # Variable to track the more undecided classifier
+                und_prob = 1
+                und_prob_position = -1
+                
+                # Cycle through the element of the classifier results
+                for j in range(len(row)):
+               
+                    # Retrieve the probability that belongs to that class
+                    actual_prob = self.pred_prob_list[j][i, 0]
+                    
+                    # Evaluate how close is to 0.5
+                    nearness = abs(0.5 - actual_prob)
+                    
+                    # Check if the probability is bigger than the probability of the last selected element
+                    if(nearness < und_prob):
+                        und_prob = nearness
+                        und_prob_position = j
+                        
+                # Select the more undecided classifier
+                # (+1 is added to have class 1 with label 1, class 2 with label 2 etc)
+                label_return[i] = und_prob_position + 1
+                
+            else:
+                # Case 3: The trials is classified as class 1 (specific class) in only 1 classifier
+                
+                # Note that since class 1 (specific class) is codified as 1 and class 2(all other classes) are codified as 2 with search the element with the minimum value.
+                label_return[i] = np.argmin(row) + 1
+    
+        # Return the results
+        return label_return
+    
+    
+                    
+                
+                
             
         

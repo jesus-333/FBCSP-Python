@@ -48,7 +48,9 @@ for idx in range(1, 2):
     tmp_trial = trials_dict['tongue']
     FBCSP_multi_clf.evaluateTrial(tmp_trial)
     
-    a = FBCSP_multi_clf.binary_dict_list
-    a1 = FBCSP_multi_clf.pred_label_list
-    a2 = FBCSP_multi_clf.pred_prob_list
-    a3 = FBCSP_multi_clf.pred_label_name
+    # a = FBCSP_multi_clf.binary_dict_list
+    # a1 = FBCSP_multi_clf.pred_label_list
+    # a2 = FBCSP_multi_clf.pred_prob_list
+    
+    b1 = FBCSP_multi_clf.pred_label_array
+    b2 = FBCSP_multi_clf.pred_prob_list
