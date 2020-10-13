@@ -45,9 +45,20 @@ for idx in range(1, 2):
     
     FBCSP_multi_clf = FBCSP_Multiclass(trials_dict, fs, print_var = print_var)
     
-    tmp_trial = trials_dict['tongue']
+    key_list = list(trials_dict.keys())
+    percentage_total = 0
+    for i in range(len(key_list)):
+        key = key_list[i]
+        tmp_trial = trials_dict[key]
+        label = FBCSP_multi_clf.evaluateTrial(tmp_trial)
+        
+        percentage_correct_class = len(label[label == (i + 1)]) / tmp_trial.shape[0]
+        percentage_total = percentage_total + percentage_correct_class * (tmp_trial.shape[0] / trials.shape[0])
+    print("Percentage of total trials correctly classified: ", percentage_total)
+        
+    # tmp_trial = trials_dict['tongue']
     # tmp_trial = trials_dict['tongue'][0:1, :, :]
-    label = FBCSP_multi_clf.evaluateTrial(tmp_trial)
+    # label = FBCSP_multi_clf.evaluateTrial(tmp_trial)
     
     # a = FBCSP_multi_clf.binary_dict_list
     # a1 = FBCSP_multi_clf.pred_label_list
