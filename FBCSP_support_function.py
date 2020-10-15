@@ -108,7 +108,7 @@ def computeTrialD1_100Hz(data, cue_position, labels, fs, class_label = None):
         for i in range(len(class_event_sample_position)):
             event_start = class_event_sample_position[i]
             trials_dict[label][i, :, :] = data[:, windows_sample + event_start]
-            
+                
     return trials_dict
 
 #%%
@@ -142,7 +142,7 @@ def loadDatasetD2(path, idx):
     return data, event_matrix
     
     
-def computeTrialD2(data, event_matrix):
+def computeTrialD2(data, event_matrix, fs, windows_length = 4):
     """
     Convert the data matrix obtained by loadDatasetD2() into a trials 3D matrix
 
@@ -152,6 +152,10 @@ def computeTrialD2(data, event_matrix):
         Input data obtained by loadDatasetD2().
     event_matrix : Numpy 2D matrix
         event_matrix obtained by loadDatasetD2().
+    fs: int
+        frequency sampling
+    windows_length: double
+        Length of the trials windows in seconds. Defualt is 4.
 
     Returns
     -------
@@ -185,20 +189,16 @@ def computeTrialD2(data, event_matrix):
     # Retrieve event start
     event_start = event_position[event_type == 768]
     
-    # Evaluate event length
-    length_list = []
-    for i in range(len(event_start) - 1): length_list.append(event_start[i + 1] - event_start[i])
-    length_list.append(data.shape[0] - event_start[-1])
-    min_length = min(length_list)
+    # Evaluate the samples for the trial window
+    windows_sample = np.linspace(int(2 * fs), int(6 * fs) - 1, int(6 * fs) - int(2 * fs)).astype(int)
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Create the trials matrix
-    trials = np.zeros((len(event_start), data.shape[1], min_length))
+    trials = np.zeros((len(event_start), data.shape[1], len(windows_sample)))
     data = data.T
     
     for i in range(trials.shape[0]):
-        trials[i, :, :] = data[:, event_start[i]:(event_start[i] + min_length)]
-    
+        trials[i, :, :] = data[:, event_start[i] + windows_sample]
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Create the label vector
     label = event_type[event_type != 768]

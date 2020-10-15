@@ -30,7 +30,7 @@ for idx in tmp_string:
     # Data load and trials extraction (Works only on dataset IV-1-a of BCI competition)
     
     # Path for 2 classes dataset
-    path = 'Dataset/D1_100Hz/Train/BCICIV_calib_ds1'
+    path = 'Dataset/D1_100Hz/v1/Train/BCICIV_calib_ds1'
     # path = 'Dataset/D1_100Hz/Test/BCICIV_eval_ds1'
     # idx = 'a'
     
@@ -49,5 +49,5 @@ for idx in tmp_string:
     trials_test = trials_dict['left']
     a, b = FBCSP_clf.evaluateTrial(trials_test)
     
-    print(len(a[a == 1])/len(a))
-    print(len(a[a == 2])/len(a))
+    # print(len(a[a == 1])/len(a))
+    # print(len(a[a == 2])/len(a))
