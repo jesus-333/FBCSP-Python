@@ -235,6 +235,43 @@ class FBCSP_V4():
             x = np.dot(np.dot(V, D), V.T)
             
         return x
+        
+    
+    def spatialFilteringAndFeatureExtraction(self):
+        # Cycle through frequency band and relative CSP filter
+        for filt_trial_dict, W in zip(self.filtered_band_signal_list, self.W_list_band):
+            # Features dict for the current frequency band
+            features_dict = {}
+            
+            # Cycle through the classes
+            for key in filt_trial_dict.keys():
+                # Applying spatial filter
+                tmp_trial = self.spatialFilteringW(filt_trial_dict[key], W)
+                
+                # Features evaluation
+                features_dict[key] = self.logVarEvaluation(tmp_trial)
+                
+                # Spatial filtering and Features evaluation ()
+                # features_dict[key] = self.featuresEvaluation(filt_trial_dict[key], W)
+            
+            self.features_band_list.append(features_dict)
+        
+        # Evaluate mutual information between features
+        self.mutual_information_list = self.computeFeaturesMutualInformation()
+        self.mutual_information_vector, self.other_info_matrix = self.changeShapeMutualInformationList()
+        
+        # Select features to use for classification
+        self.classifier_features = self.selectFeatures()
+        
+        
+    def spatialFilteringW(self, trials, W):
+        # Allocate memory for the spatial fitlered trials
+        trials_csp = np.zeros(trials.shape)
+        
+        # Apply spatial fitler
+        for i in range(trials.shape[0]): trials_csp[i, :, :] = W.dot(trials[i, :, :])
+            
+        return trials_csp
     
     def logVarEvaluation(self, trials):
         """
@@ -252,68 +289,50 @@ class FBCSP_V4():
             Return the features matrix. DImension will be trials x channel
     
         """
+        # Select the first and last n rows of the CSP filtered signal
+        idx = []
+        for i in range(self.n_features): idx.append(i)
+        for i in reversed(idx): idx.append(-(i + 1))
+        trials = trials[:, idx, :]
+        
+        
         features = np.var(trials, 2)
         features = np.log(features)
         
         return features
     
-    
-    def spatialFilteringAndFeatureExtraction(self):
-        # Cycle through frequency band and relative CSP filter
-        for filt_trial_dict, W in zip(self.filtered_band_signal_list, self.W_list_band):
-            # Features dict for the current frequency band
-            features_dict = {}
+    def featuresEvaluation(self, trials, W):
+        """
+        Alternative method for features evaluation.
+        Implemented but not used. Low performance
+
+        """
+        
+        # Create index for select the first and last n column and select them
+        idx = []
+        for i in range(self.n_features): idx.append(i)
+        for i in reversed(idx): idx.append(-(i + 1))
+        W_bar = W[:, idx]
+        
+        # Variable for the trials features
+        features = np.zeros((trials.shape[0], self.n_features * 2))
+        
+        for i in range(trials.shape[0]):
+            trial = trials[i, : , :]
             
-            # Cycle through the classes
-            for key in filt_trial_dict.keys():
-                # Applying spatial filter
-                tmp_trial = self.spatialFilteringW(filt_trial_dict[key], W)
-                
-                # Features evaluation
-                features_dict[key] = self.logVarEvaluation(tmp_trial)
+            part_1 = (W_bar.T).dot(trial)
+            part_2 = (trial.T).dot(W_bar)
             
-            self.features_band_list.append(features_dict)
-        
-        # Evaluate mutual information between features
-        self.mutual_information_list = self.computeFeaturesMutualInformation()
-        self.mutual_information_vector, self.other_info_matrix = self.changeShapeMutualInformationList()
-        
-        # Select features to use for classification
-        self.classifier_features = self.selectFeatures()
-        
-    def spatialFilteringAndFeatureExtractionV2(self):
-        # Cycle through frequency band and relative CSP filter
-        for filt_trial_dict, W in zip(self.filtered_band_signal_list, self.W_list_band):
-            # Features dict for the current frequency band
-            features_dict = {}
+            tmp_element = part_1.dot(part_2)
             
-            # Cycle through the classes
-            for key in filt_trial_dict.keys():
-                # Applying spatial filter
-                tmp_trial = self.spatialFilteringW(filt_trial_dict[key], W)
-                
-                # Features evaluation
-                features_dict[key] = self.logVarEvaluation(tmp_trial)
+            num = np.diag(tmp_element)
+            den = np.trace(tmp_element)
             
-            self.features_band_list.append(features_dict)
-        
-        # Evaluate mutual information between features
-        self.mutual_information_list = self.computeFeaturesMutualInformation()
-        self.mutual_information_vector, self.other_info_matrix = self.changeShapeMutualInformationList()
-        
-        # Select features to use for classification
-        self.classifier_features = self.selectFeatures()
-        
-    def spatialFilteringW(self, trials, W):
-        # Allocate memory for the spatial fitlered trials
-        trials_csp = np.zeros(trials.shape)
-        
-        # Apply spatial fitler
-        for i in range(trials.shape[0]): trials_csp[i, :, :] = W.dot(trials[i, :, :])
+            features[i, :] = np.log(num/den)
             
-        return trials_csp
-    
-    
+        return features
+            
+            
     def computeFeaturesMutualInformation(self):
         """
         Select the first and last n columns of the various features matrix and compute their mutual inforamation.
@@ -700,6 +719,7 @@ class FBCSP_V4():
             x = np.linspace(min_x, max_x)
             
             y1 = - (bias + coef[0, selected_features[0]] * x) / coef[0, selected_features[1]]
+            
             
             ax.plot(x, y1, color = 'k')
         

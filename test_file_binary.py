@@ -13,6 +13,7 @@ from FBCSP_support_function import cleanWorkspaec
 #%%
 from FBCSP_support_function import loadDatasetD1_100Hz, computeTrialD1_100Hz
 from FBCSP_V3 import FBCSP_V3
+from FBCSP_V4 import FBCSP_V4
 
 import numpy as np
 
@@ -22,7 +23,7 @@ import time
 
 #%%
 tmp_string = 'abcdefg'
-# tmp_string = 'b'
+tmp_string = 'c'
 
 for idx in tmp_string:
     print(idx)
@@ -40,11 +41,12 @@ for idx in tmp_string:
     trials_dict = computeTrialD1_100Hz(data, cue_position, labels, fs,other_info['class_label'])
     
     
-    FBCSP_clf = FBCSP_V3(trials_dict, fs, n_features = 3, print_var = True)
+    FBCSP_clf = FBCSP_V4(trials_dict, fs, n_features = 3, print_var = True)
     # FBCSP_clf = FBCSP_V3(trials_dict, fs, n_features = 3, classifier = SVC(kernel = 'linear'))
     
     # FBCSP_clf.plotFeaturesSeparateTraining()
     FBCSP_clf.plotFeaturesScatterTraining(selected_features = [0, -1])
+    FBCSP_clf.plotFeaturesScatterTraining(selected_features = [0, 1])
     
     trials_test = trials_dict['left']
     a, b = FBCSP_clf.evaluateTrial(trials_test)
