@@ -22,7 +22,7 @@ import time
 
 #%%
 tmp_string = 'abcdefg'
-tmp_string = 'b'
+# tmp_string = 'b'
 
 for idx in tmp_string:
     print(idx)
