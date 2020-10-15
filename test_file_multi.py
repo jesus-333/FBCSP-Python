@@ -34,12 +34,12 @@ print_var = True
 for idx in range(1, 2):
     
     # Path for 4 classes dataset
-    path = 'C:/Users/albi2/OneDrive/Documenti/GitHub/Deep-Learning-For-EEG-Classification/Dataset/D2/v1/Train'
-    # path = 'C:/Users/albi2/OneDrive/Documenti/GitHub/Deep-Learning-For-EEG-Classification/Dataset/D2/v1/Train/1_label.mat'
+    path = 'Dataset/D2/v1/Train'
+    # path = 'Dataset/D2/v1/Train/1_label.mat'
     
     data, event_matrix = loadDatasetD2(path, idx)
     
-    trials, label = computeTrialD2(data, event_matrix)
+    trials, label = computeTrialD2(data, event_matrix, fs)
     
     trials_dict = createTrialsDictD2(trials, label, label_name)
     
