@@ -259,6 +259,7 @@ class FBCSP_V4():
         # Evaluate mutual information between features
         self.mutual_information_list = self.computeFeaturesMutualInformation()
         self.mutual_information_vector, self.other_info_matrix = self.changeShapeMutualInformationList()
+        self.computeMutualInformation2()
         
         # Select features to use for classification
         self.classifier_features = self.selectFeatures()
@@ -397,6 +398,35 @@ class FBCSP_V4():
                 other_info_matrix[actual_idx, 3] = j
                 
         return mutual_information_vector, other_info_matrix
+    
+    def computeMutualInformation2(self):
+
+        tot_trials = self.n_trials_class_1 + self.n_trials_class_2
+        features_matrix = np.zeros((tot_trials, self.n_features * 2 * 9))
+        label_vector = np.zeros(tot_trials)
+        
+        # Cycle through the different band
+        for features_dict, i in zip(self.features_band_list, range(len(self.features_band_list))):
+            # Retrieve features for that band
+            keys = list(features_dict.keys())
+            feat_1 = features_dict[keys[0]]
+            feat_2 = features_dict[keys[1]]
+            
+            # Save features in a single matrix
+            all_features = np.zeros((feat_1.shape[0] + feat_2.shape[0], self.n_features * 2))            
+            all_features[0:feat_1.shape[0], :] = feat_1
+            all_features[feat_1.shape[0]:, :] = feat_2
+            
+            # Create label vector
+            label = np.ones(all_features.shape[0])
+            label[0:feat_1.shape[0]] = 2
+            
+            # Add element to the single variable
+            features_matrix[0:tot_trials, (self.n_features * 2) * i:(self.n_features * 2) * (i + 1)] = all_features
+            label_vector[0:tot_trials] = label
+            
+        
+        self.mutual_information_vector_V2 = MIBIF(features_matrix, label_vector)
             
     
     def selectFeatures(self):
