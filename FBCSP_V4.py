@@ -21,7 +21,7 @@ from sklearn.feature_selection import mutual_info_classif as MIBIF
 
 #%%
 
-class FBCSP_V3():
+class FBCSP_V4():
     
     def __init__(self, data_dict, fs, freqs_band = None, filter_order = 3, n_features = 2, classifier = None, print_var = False):
         self.fs = fs
@@ -259,6 +259,29 @@ class FBCSP_V3():
     
     
     def spatialFilteringAndFeatureExtraction(self):
+        # Cycle through frequency band and relative CSP filter
+        for filt_trial_dict, W in zip(self.filtered_band_signal_list, self.W_list_band):
+            # Features dict for the current frequency band
+            features_dict = {}
+            
+            # Cycle through the classes
+            for key in filt_trial_dict.keys():
+                # Applying spatial filter
+                tmp_trial = self.spatialFilteringW(filt_trial_dict[key], W)
+                
+                # Features evaluation
+                features_dict[key] = self.logVarEvaluation(tmp_trial)
+            
+            self.features_band_list.append(features_dict)
+        
+        # Evaluate mutual information between features
+        self.mutual_information_list = self.computeFeaturesMutualInformation()
+        self.mutual_information_vector, self.other_info_matrix = self.changeShapeMutualInformationList()
+        
+        # Select features to use for classification
+        self.classifier_features = self.selectFeatures()
+        
+    def spatialFilteringAndFeatureExtractionV2(self):
         # Cycle through frequency band and relative CSP filter
         for filt_trial_dict, W in zip(self.filtered_band_signal_list, self.W_list_band):
             # Features dict for the current frequency band
