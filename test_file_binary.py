@@ -23,7 +23,7 @@ import time
 
 #%%
 tmp_string = 'abcdefg'
-tmp_string = 'c'
+tmp_string = 'e'
 
 for idx in tmp_string:
     print(idx)
@@ -50,6 +50,9 @@ for idx in tmp_string:
     
     trials_test = trials_dict['left']
     a, b = FBCSP_clf.evaluateTrial(trials_test)
+    
+    # print("n_features x 2 = ", FBCSP_clf.n_features * 2)
+    # print("Features selected = ", len(FBCSP_clf.classifier_features))
     
     # print(len(a[a == 1])/len(a))
     # print(len(a[a == 2])/len(a))
