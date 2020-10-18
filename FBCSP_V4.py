@@ -23,9 +23,10 @@ from sklearn.feature_selection import mutual_info_classif as MIBIF
 
 class FBCSP_V4():
     
-    def __init__(self, data_dict, fs, freqs_band = None, filter_order = 3, n_features = 2, classifier = None, print_var = False):
+    def __init__(self, data_dict, fs, n_w = 2, n_features = 2, freqs_band = None, filter_order = 3, classifier = None, print_var = False):
         self.fs = fs
         self.trials_dict = data_dict
+        self.n_w = 2
         self.n_features = n_features
         self.n_trials_class_1 = data_dict[list(data_dict.keys())[0]].shape[0]
         self.n_trials_class_2 = data_dict[list(data_dict.keys())[1]].shape[0]
@@ -291,7 +292,7 @@ class FBCSP_V4():
         """
         # Select the first and last n rows of the CSP filtered signal
         idx = []
-        for i in range(self.n_features): idx.append(i)
+        for i in range(self.n_w): idx.append(i)
         for i in reversed(idx): idx.append(-(i + 1))
         trials = trials[:, idx, :]
         
@@ -397,14 +398,44 @@ class FBCSP_V4():
                 other_info_matrix[actual_idx, 3] = j
                 
         return mutual_information_vector, other_info_matrix
+    
+    def computeMutualInformation2(self):
+
+        tot_trials = self.n_trials_class_1 + self.n_trials_class_2
+        features_matrix = np.zeros((tot_trials, self.n_features * 2 * 9))
+        label_vector = np.zeros(tot_trials)
+        
+        # Cycle through the different band
+        for features_dict, i in zip(self.features_band_list, range(len(self.features_band_list))):
+            # Retrieve features for that band
+            keys = list(features_dict.keys())
+            feat_1 = features_dict[keys[0]]
+            feat_2 = features_dict[keys[1]]
+            
+            # Save features in a single matrix
+            all_features = np.zeros((feat_1.shape[0] + feat_2.shape[0], self.n_features * 2))            
+            all_features[0:feat_1.shape[0], :] = feat_1
+            all_features[feat_1.shape[0]:, :] = feat_2
+            
+            # Create label vector
+            label = np.ones(all_features.shape[0])
+            label[0:feat_1.shape[0]] = 2
+            
+            # Add element to the single variable
+            features_matrix[0:tot_trials, (self.n_features * 2) * i:(self.n_features * 2) * (i + 1)] = all_features
+            label_vector[0:tot_trials] = label
+            
+        
+        self.mutual_information_vector_V2 = MIBIF(features_matrix, label_vector)
             
     
     def selectFeatures(self):
         """
-        Select n features for classification. n can vary between self.n_features and (2 * self.n_features).
+        Select n features for classification. In this case n is equal to 2 * self.n_features.
         The features selected are the self.n_features with the highest mutual information. 
         Since the CSP features are coupled if the original couple was not selected we add to the list of features the various couple.
-
+        The original algorithm select a variable number of features (and also the V3 implementation has the same behavior). This version select always 2 * self.n_features.
+        
         Returns
         -------
         complete_list_of_features : List of tuple
@@ -445,9 +476,22 @@ class FBCSP_V4():
                 idx = sorted_other_info[:, 1] == current_features_twin
                 features_item = (int(sorted_other_info[idx, 2][0]), int(sorted_other_info[idx, 3][0]))
                 complete_list_of_features.append(features_item)
+            
+            # save the actual index for eventual case 2
+            idx = i
                 
-        return sorted(complete_list_of_features)
+        if(len(complete_list_of_features) == (2 * self.n_features)):
+            # Case 1: Already select self.n_features * 2 features
+            return sorted(complete_list_of_features)
+        else:
+            # Case 2: Select less than self.n_features * 2 features
+            print("CASE 2 ---- IDX = ", idx, "   n * 2 = ", self.n_features * 2)
+            # Select the remaining features
+            for i in range((self.n_features * 2) - len(complete_list_of_features)):
+                a = 2
                 
+                
+            return sorted(complete_list_of_features)
     
     def extractFeaturesForTraining(self, n_features = 1):
         # Tracking variable of the band
