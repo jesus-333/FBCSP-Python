@@ -142,7 +142,7 @@ def loadDatasetD2(path, idx):
     return data, event_matrix
     
     
-def computeTrialD2(data, event_matrix, fs, windows_length = 4):
+def computeTrialD2(data, event_matrix, fs, windows_length = 4, remove_corrupt = False):
     """
     Convert the data matrix obtained by loadDatasetD2() into a trials 3D matrix
 
@@ -161,7 +161,7 @@ def computeTrialD2(data, event_matrix, fs, windows_length = 4):
     -------
     trials : Numpy 3D matrix
         Matrix with dimensions "n. trials x channel x n. samples per trial".
-    label : Numpy vector
+    labels : Numpy vector
         Vector with a label for each trials. For more information read http://www.bbci.de/competition/iv/desc_2a.pdf
 
     """
@@ -170,18 +170,19 @@ def computeTrialD2(data, event_matrix, fs, windows_length = 4):
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Remove corrupted trials
-    event_corrupt_mask_1 = event_type == 1023
-    event_corrupt_mask_2 = event_type == 1023
-    for i in range(len(event_corrupt_mask_2)):
-        if(event_corrupt_mask_2[i] == True): 
-            # Start of the trial
-            event_corrupt_mask_1[i - 1] = True
-            # Type of the trial
-            event_corrupt_mask_1[i + 1] = True
-            
-    
-    event_position = event_position[np.logical_not(event_corrupt_mask_1)]
-    event_type = event_type[np.logical_not(event_corrupt_mask_1)]
+    if(remove_corrupt):
+        event_corrupt_mask_1 = event_type == 1023
+        event_corrupt_mask_2 = event_type == 1023
+        for i in range(len(event_corrupt_mask_2)):
+            if(event_corrupt_mask_2[i] == True): 
+                # Start of the trial
+                event_corrupt_mask_1[i - 1] = True
+                # Type of the trial
+                event_corrupt_mask_1[i + 1] = True
+                
+        
+        event_position = event_position[np.logical_not(event_corrupt_mask_1)]
+        event_type = event_type[np.logical_not(event_corrupt_mask_1)]
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Since trials have different length I crop them all to the minimum length
@@ -190,7 +191,9 @@ def computeTrialD2(data, event_matrix, fs, windows_length = 4):
     event_start = event_position[event_type == 768]
     
     # Evaluate the samples for the trial window
-    windows_sample = np.linspace(int(2 * fs), int(6 * fs) - 1, int(6 * fs) - int(2 * fs)).astype(int)
+    start_second = 0.5
+    end_second = 6
+    windows_sample = np.linspace(int(start_second * fs), int(end_second * fs) - 1, int(end_second * fs) - int(start_second * fs)).astype(int)
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Create the trials matrix
@@ -201,21 +204,21 @@ def computeTrialD2(data, event_matrix, fs, windows_length = 4):
         trials[i, :, :] = data[:, event_start[i] + windows_sample]
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Create the label vector
-    label = event_type[event_type != 768]
-    label = label[label != 32766]
+    labels = event_type[event_type != 768]
+    labels = labels[labels != 32766]
     
-    return trials, label
+    return trials, labels
 
 
-def createTrialsDictD2(trials, label, label_name = None):
+def createTrialsDictD2(trials, labels, label_name = None):
     """
-    Covnert the trials matrix and the label vector in a dict.
+    Converts the trials matrix and the labels vector in a dict.
 
     Parameters
     ----------
     trials : Numpy 2D matrix
         trials matrix obtained by computeTrialD2().
-    label : Numpy vector
+    labels : Numpy vector
         vector trials obtained by computeTrialD2().
     label_name : dicitonary, optional
         If passed must be a dictionart where the keys are the value 769, 770, 771, 772. For each key you must insert the corresponding label.
@@ -229,11 +232,11 @@ def createTrialsDictD2(trials, label, label_name = None):
 
     """
     trials_dict = {}
-    keys = np.unique(label)
+    keys = np.unique(labels)
     
-    for key in label:
-        if(label_name != None): trials_dict[label_name[key]] = trials[label == key, :, :]
-        else: trials_dict[key] = trials[label == key, :, :] 
+    for key in labels:
+        if(label_name != None): trials_dict[label_name[key]] = trials[labels == key, :, :]
+        else: trials_dict[key] = trials[labels == key, :, :] 
     
     return trials_dict
     
