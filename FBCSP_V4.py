@@ -23,10 +23,10 @@ from sklearn.feature_selection import mutual_info_classif as MIBIF
 
 class FBCSP_V4():
     
-    def __init__(self, data_dict, fs, n_w = 2, n_features = 2, freqs_band = None, filter_order = 3, classifier = None, print_var = False):
+    def __init__(self, data_dict, fs, n_w = 2, n_features = 4, freqs_band = None, filter_order = 3, classifier = None, print_var = True):
         self.fs = fs
         self.trials_dict = data_dict
-        self.n_w = 2
+        self.n_w = n_w
         self.n_features = n_features
         self.n_trials_class_1 = data_dict[list(data_dict.keys())[0]].shape[0]
         self.n_trials_class_2 = data_dict[list(data_dict.keys())[1]].shape[0]
@@ -294,8 +294,7 @@ class FBCSP_V4():
         idx = []
         for i in range(self.n_w): idx.append(i)
         for i in reversed(idx): idx.append(-(i + 1))
-        trials = trials[:, idx, :]
-        
+        trials = trials[:, idx, :]    
         
         features = np.var(trials, 2)
         features = np.log(features)
@@ -347,21 +346,16 @@ class FBCSP_V4():
         """
         
         mutual_information_list = []
-        
-        # Create index for select the first and last m column
-        idx = []
-        for i in range(self.n_features): idx.append(i)
-        for i in reversed(idx): idx.append(-(i + 1))
-        
+                
         # Cycle through the different band
         for features_dict in self.features_band_list:
             # Retrieve features for that band
             keys = list(features_dict.keys())
-            feat_1 = features_dict[keys[0]][:, idx]
-            feat_2 = features_dict[keys[1]][:, idx]
+            feat_1 = features_dict[keys[0]]
+            feat_2 = features_dict[keys[1]]
             
             # Save features in a single matrix
-            all_features = np.zeros((feat_1.shape[0] + feat_2.shape[0], self.n_features * 2))            
+            all_features = np.zeros((feat_1.shape[0] + feat_2.shape[0], feat_1.shape[1]))            
             all_features[0:feat_1.shape[0], :] = feat_1
             all_features[feat_1.shape[0]:, :] = feat_2
             
@@ -372,12 +366,16 @@ class FBCSP_V4():
             tmp_mutual_information = MIBIF(all_features, label)
             mutual_information_list.append(tmp_mutual_information)
             
+            self.a = all_features
+            self.a1 = feat_1
+            self.a2 = feat_2
+            
         return mutual_information_list
     
     
     def changeShapeMutualInformationList(self):
         # 1D-Array with all the mutual information value
-        mutual_information_vector = np.zeros(9 * 2 * self.n_features)
+        mutual_information_vector = np.zeros(9 * 2 * self.n_w)
             
         # Since the CSP features are coupled (First with last etc) in this matrix I save the couple.
         # I will also save the original band and the position in the original band
@@ -386,13 +384,13 @@ class FBCSP_V4():
         for i in range(len(self.mutual_information_list)):
             mutual_information = self.mutual_information_list[i]
             
-            for j in range(self.n_features * 2):
+            for j in range(self.n_w * 2):
                 # Acual index for the various vector
-                actual_idx = i * self.n_features * 2 + j
+                actual_idx = i * self.n_w * 2 + j
                 
                 # Save the various information
                 mutual_information_vector[actual_idx] = mutual_information[j]
-                other_info_matrix[actual_idx, 0] = i * self.n_features * 2 + ((self.n_features * 2) - (j + 1))
+                other_info_matrix[actual_idx, 0] = i * self.n_w * 2 + ((self.n_w * 2) - (j + 1))
                 other_info_matrix[actual_idx, 1] = actual_idx
                 other_info_matrix[actual_idx, 2] = i
                 other_info_matrix[actual_idx, 3] = j
@@ -480,15 +478,15 @@ class FBCSP_V4():
             # save the actual index for eventual case 2
             idx = i
                 
-        if(len(complete_list_of_features) == (2 * self.n_features)):
-            # Case 1: Already select self.n_features * 2 features
-            return sorted(complete_list_of_features)
-        else:
-            # Case 2: Select less than self.n_features * 2 features
-            print("CASE 2 ---- IDX = ", idx, "   n * 2 = ", self.n_features * 2)
-            # Select the remaining features
-            for i in range((self.n_features * 2) - len(complete_list_of_features)):
-                a = 2
+        # if(len(complete_list_of_features) == (2 * self.n_features)):
+        #     # Case 1: Already select self.n_features * 2 features
+        #     return sorted(complete_list_of_features)
+        # else:
+        #     # Case 2: Select less than self.n_features * 2 features
+        #     # print("CASE 2 ---- IDX = ", idx, "   n * 2 = ", self.n_features * 2)
+        #     # Select the remaining features
+        #     for i in range((self.n_features * 2) - len(complete_list_of_features)):
+        #         a = 2
                 
                 
             return sorted(complete_list_of_features)

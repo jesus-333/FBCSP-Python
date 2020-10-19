@@ -22,8 +22,17 @@ from sklearn.svm import SVC
 import time
 
 #%%
+n_w = 2
+n_features = 4
+
 tmp_string = 'abcdefg'
 tmp_string = 'e'
+
+path = 'Dataset/D1_100Hz/Train/BCICIV_calib_ds1'
+high_sampling_dataset = False
+
+# path = 'Dataset/D1_1000Hz/Train/BCICIV_calib_ds1'
+# high_sampling_dataset = True
 
 for idx in tmp_string:
     print(idx)
@@ -31,28 +40,24 @@ for idx in tmp_string:
     # Data load and trials extraction (Works only on dataset IV-1-a of BCI competition)
     
     # Path for 2 classes dataset
-    path = 'Dataset/D1_100Hz/v1/Train/BCICIV_calib_ds1'
     # path = 'Dataset/D1_100Hz/Test/BCICIV_eval_ds1'
     # idx = 'a'
     
-    data, labels, cue_position, other_info = loadDatasetD1_100Hz(path, idx, type_dataset = 'train')
+    data, labels, cue_position, other_info = loadDatasetD1_100Hz(path, idx, type_dataset = 'train', high_sampling_dataset= high_sampling_dataset)
     
     fs = other_info['sample_rate']
     trials_dict = computeTrialD1_100Hz(data, cue_position, labels, fs,other_info['class_label'])
     
+    # FBCSP_clf = FBCSP_V3(trials_dict, fs, n_features = 3, classifier = SVC(kernel = 'linear'))    
     
-    FBCSP_clf = FBCSP_V4(trials_dict, fs, n_features = 3, print_var = True)
-    # FBCSP_clf = FBCSP_V3(trials_dict, fs, n_features = 3, classifier = SVC(kernel = 'linear'))
+    FBCSP_clf = FBCSP_V4(trials_dict, fs, n_w = 2, n_features = n_features, print_var = True)
+    # FBCSP_clf = FBCSP_V4(trials_dict, fs, n_w = 2, n_features = n_features, classifier = SVC(kernel = 'linear'), print_var = True)
     
     # FBCSP_clf.plotFeaturesSeparateTraining()
     FBCSP_clf.plotFeaturesScatterTraining(selected_features = [0, -1])
-    FBCSP_clf.plotFeaturesScatterTraining(selected_features = [0, 1])
+    # FBCSP_clf.plotFeaturesScatterTraining(selected_features = [-1, 1])
     
-    trials_test = trials_dict['left']
-    a, b = FBCSP_clf.evaluateTrial(trials_test)
-    
-    # print("n_features x 2 = ", FBCSP_clf.n_features * 2)
-    # print("Features selected = ", len(FBCSP_clf.classifier_features))
-    
-    # print(len(a[a == 1])/len(a))
-    # print(len(a[a == 2])/len(a))
+    # for idx_2 in tmp_string:
+    #     trials_test = trials_dict['left']
+    #     a, b = FBCSP_clf.evaluateTrial(trials_test)
+        

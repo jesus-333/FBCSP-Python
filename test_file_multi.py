@@ -24,6 +24,9 @@ import time
     
 #%%
 fs = 250
+n_w = 2
+n_features = 4
+
 labels_name = {}
 labels_name[769] = 'left'
 labels_name[770] = 'right'
@@ -53,7 +56,7 @@ for idx in range(1, 2):
     # Test set
     
     path_test = 'Dataset/D2/v1/Test'
-    path_test_label = 'Dataset/D2/True Label/A0' + str(idx) + 'E.mat'
+    path_test_label = 'Dataset/D2/v1/True Label/A0' + str(idx) + 'E.mat'
     
     data_test, event_matrix_test = loadDatasetD2(path_test, idx)
     trials_test, labels_test = computeTrialD2(data_test, event_matrix_test, fs)
@@ -65,4 +68,9 @@ for idx in range(1, 2):
     labels_confront[:, 0] = labels_true_value
     labels_confront[:, 1] = labels_predict_value
     
+    a1 = FBCSP_multi_clf.pred_label_array
+    a2 = FBCSP_multi_clf.pred_prob_array
+    a3 = FBCSP_multi_clf.pred_prob_list
+    
    
+#%%

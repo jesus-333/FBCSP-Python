@@ -20,7 +20,7 @@ import time
 
 class FBCSP_Multiclass():
     
-    def __init__(self, data_dict, fs, freqs_band = None, filter_order = 3, n_features = 3, classifier = None, print_var = False):
+    def __init__(self, data_dict, fs, n_w = 2, n_features = 4, freqs_band = None, filter_order = 3, classifier = None, print_var = False):
         self.print_var = print_var
         
         if(print_var): start = time.time()
@@ -45,8 +45,8 @@ class FBCSP_Multiclass():
             if(print_var): print("Binary Dicionary create")
             
             # Create the FBCSP object and train it
-            if(classifier != None): tmp_FBCSP_clf = FBCSP_V4(tmp_binary_dict, fs, n_features = n_features, classifier = classifier, print_var = print_var)
-            else: tmp_FBCSP_clf = FBCSP_V4(tmp_binary_dict, fs, n_features = n_features, print_var = print_var)
+            if(classifier != None): tmp_FBCSP_clf = FBCSP_V4(tmp_binary_dict, fs, n_w = n_w, n_features = n_features, classifier = classifier, print_var = print_var)
+            else: tmp_FBCSP_clf = FBCSP_V4(tmp_binary_dict, fs, n_w = n_w, n_features = n_features, print_var = print_var)
             if(print_var): print("FBCSP object and training complete")
             
             # Add the classifier to the list
@@ -93,8 +93,13 @@ class FBCSP_Multiclass():
     
     
     def evaluateTrial(self, trials_matrix):
+        # Variable to track the predicted label for each classifier
         self.pred_label_array = np.zeros((trials_matrix.shape[0], len(self.FBCSP_list)))
+        
+        # Matrix wiht the probability of the prediction for each classifier
         self.pred_prob_array = np.zeros((trials_matrix.shape[0], len(self.FBCSP_list) * 2))
+        
+        # List with the probability of preditiction for each classifier
         self.pred_prob_list = []
         label_return = np.zeros(trials_matrix.shape[0])
         
@@ -107,6 +112,10 @@ class FBCSP_Multiclass():
             self.pred_label_array[:, i] = label
             self.pred_prob_array[:, (i*2):(i*2+2)] = prob
             self.pred_prob_list.append(prob)
+            
+            if(i == 0):
+                self.col_3_prob = prob
+                self.col_3_label = label
             
             
         # Check the results (Iteration through trials)

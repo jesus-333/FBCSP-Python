@@ -19,8 +19,10 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 #%% Function for 100Hz dataset (Dataset IV-1) and data handling
 # This function are specific for the dataset IV-1
 
-def loadDatasetD1_100Hz(path, idx, type_dataset):
-    tmp = loadmat(path + idx + '.mat');
+def loadDatasetD1_100Hz(path, idx, type_dataset, high_sampling_dataset = False):
+    if(high_sampling_dataset):  tmp = loadmat(path + idx + '_1000Hz.mat');
+    else:  tmp = loadmat(path + idx + '.mat');
+   
     data = tmp['cnt'].T
     
     if(type_dataset == 'train'):
