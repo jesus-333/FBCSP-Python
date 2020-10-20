@@ -654,7 +654,10 @@ class FBCSP_V4():
         y = self.classifier.predict(features_input)
         
         # Evaluate the probabilty
-        y_prob = self.classifier.predict_proba(features_input)
+        if(self.classifier.__class__.__name__ == 'LinearDiscriminantAnalysis'):
+            y_prob = self.classifier.predict_proba(features_input)
+        else:
+            y_prob = np.zeros(2)
         
         # for feat in features_input:
         #     # print(feat)

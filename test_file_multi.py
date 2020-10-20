@@ -16,6 +16,8 @@ from FBCSP_Multiclass import FBCSP_Multiclass
 
 import numpy as np
 
+import matplotlib.pyplot as plt
+
 from sklearn.svm import SVC
 from scipy.io import loadmat
 
@@ -40,6 +42,9 @@ labels_name[4] = 'tongue'
 
 print_var = False
 
+idx_list = [1, 9]
+
+# for idx in idx_list:
 for idx in range(1, 10):
     print('Subject n.', str(idx))
     
@@ -59,6 +64,7 @@ for idx in range(1, 10):
     trials_dict = createTrialsDictD2(trials, labels, labels_name)
     
     FBCSP_multi_clf = FBCSP_Multiclass(trials_dict, fs, print_var = print_var)
+    # FBCSP_multi_clf = FBCSP_Multiclass(trials_dict, fs, classifier = SVC(kernel = 'linear'), print_var = print_var)
     
     #- - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Test set
@@ -68,31 +74,28 @@ for idx in range(1, 10):
     
     data_test, event_matrix_test = loadDatasetD2(path_test, idx)
     trials_test, labels_test = computeTrialD2(data_test, event_matrix_test, fs)
+    data_test = -data_test
     
     labels_true_value_1 = np.squeeze(loadmat(path_test_label)['classlabel'])
-    labels_true_value_2 = loadTrueLabel(path_test_label)
     labels_predict_value = FBCSP_multi_clf.evaluateTrial(trials_test)
     
     labels_confront = np.zeros((len(labels_true_value_1), 3))
     labels_confront[:, 0] = labels_true_value_1
     labels_confront[:, 1] = labels_predict_value
-    labels_confront[:, 2] = labels_true_value_2
     
     a1 = FBCSP_multi_clf.pred_label_array
     a2 = FBCSP_multi_clf.pred_prob_array
     a3 = FBCSP_multi_clf.pred_prob_list
     
-    # Percentage of correct prediction (1)
+    # Percentage of correct prediction
     correct_prediction_1 = labels_predict_value[labels_predict_value == labels_true_value_1]
     perc_correct_1 = len(correct_prediction_1)/len(labels_true_value_1)
+        
     
-    # Percentage of correct prediction (2)
-    correct_prediction_2 = labels_predict_value[labels_predict_value == labels_true_value_2]
-    perc_correct_2 = len(correct_prediction_2)/len(labels_true_value_2)
-    
-    
-    print('\nPercentage of correct prediction (1): ', perc_correct_1)
-    print('Percentage of correct prediction (2): ', perc_correct_2)
+    print('\nPercentage of correct prediction: ', perc_correct_1)
     print("# # # # # # # # # # # # # # # # # # # # #\n")
     
+#%%
 
+plt.plot(data[:, 0])
+plt.plot(data_test[:, 0])

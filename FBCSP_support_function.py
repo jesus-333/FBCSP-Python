@@ -248,7 +248,7 @@ def createTrialsDictD2(trials, labels, label_name = None):
     trials_dict = {}
     keys = np.unique(labels)
     
-    for key in labels:
+    for key in keys:
         if(label_name != None): trials_dict[label_name[key]] = trials[labels == key, :, :]
         else: trials_dict[key] = trials[labels == key, :, :] 
     
