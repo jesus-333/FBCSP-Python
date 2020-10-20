@@ -41,7 +41,7 @@ class FBCSP_Multiclass():
             # Create the binary dict
             tmp_binary_dict = self.createBinaryDict(data_dict, key)
             self.binary_dict_list.append(tmp_binary_dict)
-            print(tmp_binary_dict.keys())
+            # print(tmp_binary_dict.keys())
             if(print_var): print("Binary Dicionary create")
             
             # Create the FBCSP object and train it
@@ -112,11 +112,6 @@ class FBCSP_Multiclass():
             self.pred_label_array[:, i] = label
             self.pred_prob_array[:, (i*2):(i*2+2)] = prob
             self.pred_prob_list.append(prob)
-            
-            if(i == 0):
-                self.col_3_prob = prob
-                self.col_3_label = label
-            
             
         # Check the results (Iteration through trials)
         for i in range(trials_matrix.shape[0]):

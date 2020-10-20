@@ -366,10 +366,6 @@ class FBCSP_V4():
             tmp_mutual_information = MIBIF(all_features, label)
             mutual_information_list.append(tmp_mutual_information)
             
-            self.a = all_features
-            self.a1 = feat_1
-            self.a2 = feat_2
-            
         return mutual_information_list
     
     
@@ -388,12 +384,14 @@ class FBCSP_V4():
                 # Acual index for the various vector
                 actual_idx = i * self.n_w * 2 + j
                 
-                # Save the various information
+                # Save the current value of mutual information for that features
                 mutual_information_vector[actual_idx] = mutual_information[j]
-                other_info_matrix[actual_idx, 0] = i * self.n_w * 2 + ((self.n_w * 2) - (j + 1))
-                other_info_matrix[actual_idx, 1] = actual_idx
-                other_info_matrix[actual_idx, 2] = i
-                other_info_matrix[actual_idx, 3] = j
+                
+                # Save other information related to that feature
+                other_info_matrix[actual_idx, 0] = i * self.n_w * 2 + ((self.n_w * 2) - (j + 1)) # Position of the twin (in the vector)
+                other_info_matrix[actual_idx, 1] = actual_idx # Position of the actual feature (in the vector)
+                other_info_matrix[actual_idx, 2] = i # Current band
+                other_info_matrix[actual_idx, 3] = j # Position in the original band
                 
         return mutual_information_vector, other_info_matrix
     
@@ -489,9 +487,9 @@ class FBCSP_V4():
         #         a = 2
                 
                 
-            return sorted(complete_list_of_features)
+        return sorted(complete_list_of_features)
     
-    def extractFeaturesForTraining(self, n_features = 1):
+    def extractFeaturesForTraining(self):
         # Tracking variable of the band
         old_band = -1
         
@@ -520,10 +518,10 @@ class FBCSP_V4():
                 keys = list(current_band_features_dict.keys())
                 tmp_feat_1 = current_band_features_dict[keys[0]]
                 tmp_feat_2 = current_band_features_dict[keys[1]]
-                
+
                 # Squeeze the features matrix
-                tmp_feat_1 = self.squeezeFeatures(tmp_feat_1)
-                tmp_feat_2 = self.squeezeFeatures(tmp_feat_2)
+                # tmp_feat_1 = self.squeezeFeatures(tmp_feat_1)
+                # tmp_feat_2 = self.squeezeFeatures(tmp_feat_2)
                 
                 # Extract the features
                 features_1[:, i] = tmp_feat_1[:, features_position[1]]
@@ -571,7 +569,6 @@ class FBCSP_V4():
             The proportion of the data to used as train dataset. The default is 0.75.
         classifier : sklearnn classifier, optional
             Classifier used for the problem. It must be a sklearn classifier. If no classfier was provided the fucntion use the LDA classifier.
-
 
         """
         
@@ -651,21 +648,30 @@ class FBCSP_V4():
         
         # Compute and extract the features for the training
         features_input = self.extractFeatures(trials_matrix)
-           
+        self. a = features_input
+
         # Classify the trials
         y = self.classifier.predict(features_input)
         
         # Evaluate the probabilty
         y_prob = self.classifier.predict_proba(features_input)
         
+        # for feat in features_input:
+        #     # print(feat)
+        #     fig, ax = plt.subplots(1, 1, figsize = (15, 10))
+        #     x1 = np.linspace(1, features_input.shape[1], features_input.shape[1])
+        #     # y1 = np.mean(feat, 0)
+        #     ax.bar(x1, feat, width = 0.3, color = 'b', align='center')
+        #     ax.set_ylim([-3, 3])
+        
         return y, y_prob
     
     
     def extractFeatures(self, trials_matrix):
         # Create index for select the first and last m column
-        idx = []
-        for i in range(self.n_features): idx.append(i)
-        for i in reversed(idx): idx.append(-(i + 1))
+        # idx = []
+        # for i in range(self.n_features): idx.append(i)
+        # for i in reversed(idx): idx.append(-(i + 1))
         
         # List for the features
         features_list = []
@@ -688,7 +694,8 @@ class FBCSP_V4():
             # Features evaluation
             features = self.logVarEvaluation(spatial_filter_trial)
             
-            features_list.append(features[:, idx])
+            features_list.append(features)
+            # features_list.append(features[:, idx])
             
         # Features selection
         for i in range(len(self.classifier_features)):

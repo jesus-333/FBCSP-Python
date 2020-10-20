@@ -193,7 +193,7 @@ def computeTrialD2(data, event_matrix, fs, windows_length = 4, remove_corrupt = 
     event_start = event_position[event_type == 768]
     
     # Evaluate the samples for the trial window
-    start_second = 0.5
+    start_second = 2
     end_second = 6
     windows_sample = np.linspace(int(start_second * fs), int(end_second * fs) - 1, int(end_second * fs) - int(start_second * fs)).astype(int)
     
@@ -208,6 +208,18 @@ def computeTrialD2(data, event_matrix, fs, windows_length = 4, remove_corrupt = 
     # Create the label vector
     labels = event_type[event_type != 768]
     labels = labels[labels != 32766]
+    labels = labels[labels != 1023]
+    
+    new_labels = np.zeros(labels.shape)
+    labels_name = {}
+    labels_name[769] = 1
+    labels_name[770] = 2
+    labels_name[771] = 3
+    labels_name[772] = 4
+    labels_name[783] = -1
+    for i in range(len(labels)):
+        new_labels[i] = labels_name[labels[i]]
+    labels = new_labels
     
     return trials, labels
 
@@ -241,7 +253,21 @@ def createTrialsDictD2(trials, labels, label_name = None):
         else: trials_dict[key] = trials[labels == key, :, :] 
     
     return trials_dict
+
+
+def loadTrueLabel(path):
+    # Load the labels and create a copy
+    labels = np.squeeze(loadmat(path)['classlabel'])
+    labels_copy = np.copy(labels)
     
+    # Invert values (this step is done because the labels in the classifier and in the saved data are inverted)
+    # I.e. Label 1 in saved data corresponding to label 4 in the classfier etc
+    labels[labels_copy == 1] = 4
+    labels[labels_copy == 2] = 3
+    labels[labels_copy == 3] = 2
+    labels[labels_copy == 4] = 1
+    
+    return labels
       
 #%% Other
 

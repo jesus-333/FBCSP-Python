@@ -17,6 +17,8 @@ from FBCSP_V4 import FBCSP_V4
 
 import numpy as np
 
+import matplotlib.pyplot as plt
+
 from sklearn.svm import SVC
 from scipy.io import loadmat
 
@@ -26,15 +28,17 @@ import time
 n_w = 2
 n_features = 4
 n_trials_test = 230
+print_var = True
 
 tmp_string = 'abcdefg'
 tmp_string = 'bcdefg'
+# tmp_string = 'c'
 
-path = 'Dataset/D1_100Hz/v1/Train/BCICIV_calib_ds1'
-high_sampling_dataset = False
+# path = 'Dataset/D1_100Hz/v1/Train/BCICIV_calib_ds1'
+# high_sampling_dataset = False
 
-# path = 'Dataset/D1_1000Hz/v1/Train/BCICIV_calib_ds1'
-# high_sampling_dataset = True
+path = 'Dataset/D1_1000Hz/v1/Train/BCICIV_calib_ds1'
+high_sampling_dataset = True
 
 for idx in tmp_string:
     print(idx)
@@ -53,7 +57,7 @@ for idx in tmp_string:
     # FBCSP_clf = FBCSP_V3(trials_dict, fs, n_features = n_features, print_var = True)
     # FBCSP_clf = FBCSP_V3(trials_dict, fs, n_w = n_w, n_features = n_features, classifier = SVC(kernel = 'linear'))    
     
-    FBCSP_clf = FBCSP_V4(trials_dict, fs, n_w = n_w, n_features = n_features, print_var = True)
+    FBCSP_clf = FBCSP_V4(trials_dict, fs, n_w = n_w, n_features = n_features, print_var = print_var)
     # FBCSP_clf = FBCSP_V4(trials_dict, fs, n_w = n_w, n_features = n_features, classifier = SVC(kernel = 'linear'), print_var = True)
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -71,7 +75,8 @@ for idx in tmp_string:
     # Retrieve original label
     labels_test_original = np.squeeze(loadmat(path_testing + 'label.mat')['final_label'])
     labels_test_original = labels_test_original[0:n_trials_test]
-    labels_test_original[labels_test_original == -1] = 2
+    labels_test_original[labels_test_original == 1] = 2
+    labels_test_original[labels_test_original == -1] = 1
     
     # Create vector for predict label
     labels_test_predict = np.zeros(n_trials_test)
@@ -86,7 +91,7 @@ for idx in tmp_string:
         trial_test = loadmat(path_testing + str(i) + '_data.mat')['trial']
         trial_test = trial_test.T
         trial_test = np.expand_dims(trial_test, axis = 0)
-        
+
         # Evaluate trial
         tmp_label, tmp_prob = FBCSP_clf.evaluateTrial(trial_test)
         
