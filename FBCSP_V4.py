@@ -475,9 +475,6 @@ class FBCSP_V4():
                 idx = sorted_other_info[:, 1] == current_features_twin
                 features_item = (int(sorted_other_info[idx, 2][0]), int(sorted_other_info[idx, 3][0]))
                 complete_list_of_features.append(features_item)
-            
-            # save the actual index for eventual case 2
-            idx = i
                 
         return sorted(complete_list_of_features)
     
