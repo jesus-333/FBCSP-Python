@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Contain the implementation of the FBCSP algorithm (binary version). 
-This version (V4) is based on the implementation of the paper by Sakhavi et al. avialbe at https://ieeexplore.ieee.org/document/8310961 
 
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
@@ -304,7 +303,7 @@ class FBCSP_V4():
     def featuresEvaluation(self, trials, W):
         """
         Alternative method for features evaluation.
-        Implemented but not used. Low performance
+        Implemented but not used. Very low performance
 
         """
         
@@ -476,18 +475,8 @@ class FBCSP_V4():
             # save the actual index for eventual case 2
             idx = i
                 
-        # if(len(complete_list_of_features) == (2 * self.n_features)):
-        #     # Case 1: Already select self.n_features * 2 features
-        #     return sorted(complete_list_of_features)
-        # else:
-        #     # Case 2: Select less than self.n_features * 2 features
-        #     # print("CASE 2 ---- IDX = ", idx, "   n * 2 = ", self.n_features * 2)
-        #     # Select the remaining features
-        #     for i in range((self.n_features * 2) - len(complete_list_of_features)):
-        #         a = 2
-                
-                
         return sorted(complete_list_of_features)
+    
     
     def extractFeaturesForTraining(self):
         # Tracking variable of the band
