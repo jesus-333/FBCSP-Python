@@ -399,6 +399,12 @@ class FBCSP_V4():
     
     
     def computeMutualInformation2(self):
+        """
+        Method add to test a different type of mutual information evaluation find in another paper. 
+        The results are the same that with the original method. 
+        So this method is impemented but not used.
+
+        """
 
         tot_trials = self.n_trials_class_1 + self.n_trials_class_2
         features_matrix = np.zeros((tot_trials, self.n_features * 2 * 9))
