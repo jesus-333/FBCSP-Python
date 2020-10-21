@@ -13,7 +13,7 @@ Once initialized the class automaticaly found the various spatial filter and the
 An evalaution method to classify new trials is implemented with the name *evaluateTrial()*. The input of method must have the dimensions "n. trials x n. channels x n.samples". The method return a vector where each element is the label of the respective trial. The label are *"1"* for class 1 and *"2"* for class 2.
 
 ## Multiclass Classification
-In case you have data with multiple label I also create a second class for multiclassification. The class is inside the file "FBCSP_Multiclass.py". The input of the class must be also in this case a dictionary with key the label of the varios trial and element the trials matrix with dimensions "n. trials x n. channels x n.samples". Results for the dataset 2a of the BCI competition dataset is reported in the table below:
+In case you have data with multiple label I also create a second class for multiclassification. The class is inside the file "FBCSP_Multiclass.py". The input of the class must be also in this case a dictionary with key the label of the varios trial and element the trials matrix with dimensions "n. trials x n. channels x n.samples". Results for the [dataset 2a](http://www.bbci.de/competition/iv/desc_2a.pdf) of the BCI competition dataset is reported in the table below:
 
 | Subject |  [Kai Keng Ang et al.](https://ieeexplore.ieee.org/document/4634130) | Mine Results |
 |:-------:|:-----:|:----------:|
