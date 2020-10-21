@@ -127,6 +127,7 @@ class FBCSP_V4():
           
         return scipy.signal.filtfilt(b, a, trials_matrix)
     
+    
     def evaluateW(self):
         """
         Evaluate the spatial filter of the CSP algorithm for each filtered signal inside self.filtered_band_signal_list
@@ -273,6 +274,7 @@ class FBCSP_V4():
             
         return trials_csp
     
+    
     def logVarEvaluation(self, trials):
         """
         Evaluate the log (logarithm) var (variance) of the trial matrix along the samples axis.
@@ -299,6 +301,7 @@ class FBCSP_V4():
         features = np.log(features)
         
         return features
+    
     
     def featuresEvaluation(self, trials, W):
         """
@@ -393,6 +396,7 @@ class FBCSP_V4():
                 other_info_matrix[actual_idx, 3] = j # Position in the original band
                 
         return mutual_information_vector, other_info_matrix
+    
     
     def computeMutualInformation2(self):
 
@@ -507,10 +511,6 @@ class FBCSP_V4():
                 keys = list(current_band_features_dict.keys())
                 tmp_feat_1 = current_band_features_dict[keys[0]]
                 tmp_feat_2 = current_band_features_dict[keys[1]]
-
-                # Squeeze the features matrix
-                # tmp_feat_1 = self.squeezeFeatures(tmp_feat_1)
-                # tmp_feat_2 = self.squeezeFeatures(tmp_feat_2)
                 
                 # Extract the features
                 features_1[:, i] = tmp_feat_1[:, features_position[1]]
@@ -526,25 +526,6 @@ class FBCSP_V4():
                 
         return features_1, features_2
     
-    def squeezeFeatures(self, features_matrix):
-        """
-        Given a trial matrix with dimension "n_trials x n_features" this function select the first and last n columns.
-        n is the number self.n_features.
-
-        """
-        
-        # Create index for select the first and last n column
-        idx = []
-        for i in range(self.n_features): idx.append(i)
-        for i in reversed(idx): idx.append(-(i + 1))
-        
-        # Create the new matrix for the feaures
-        squeeze_features = np.zeros((features_matrix.shape[0], self.n_features * 2))
-        
-        # Select the firs and last n features
-        squeeze_features[:, :] = features_matrix[:, idx]
-                 
-        return squeeze_features
         
     def trainClassifier(self, train_ratio = 0.75, classifier = None):
         """
@@ -610,6 +591,7 @@ class FBCSP_V4():
         if(self.print_var): print("Accuracy on TEST set: ", self.classifier.score(test_data, test_label), "\n")
         
         # print("total: ", self.classifier.score(train_data, train_label) * self.classifier.score(test_data, test_label))
+        
         
     def evaluateTrial(self, trials_matrix, plot = True):
         """
@@ -699,6 +681,7 @@ class FBCSP_V4():
             
         return features_input
     
+    
     def plotFeaturesSeparateTraining(self, width = 0.3, figsize = (15, 30)):
         fig, axs = plt.subplots(len(self.features_band_list), 1, figsize = figsize)
         for features_dict, ax in zip(self.features_band_list, axs):
@@ -715,6 +698,7 @@ class FBCSP_V4():
             ax.bar(x1, y1, width = width, color = 'b', align='center')
             ax.bar(x2, y2, width = width, color = 'r', align='center')
             ax.set_xlim(0.5, 59.5)
+         
             
     def plotFeaturesScatterTraining(self, selected_features = [0, -1], figsize = (15, 10)):
         """
@@ -785,7 +769,8 @@ class FBCSP_V4():
         # Plotting
         fig, ax = plt.subplots(figsize = figsize)
         ax.scatter(features_input[:, selected_features[0]], features_input[:, selected_features[1]])
-            
+          
+        
     def plotFeatuersTogether(self, width = 0.3, figsize = (15, 10)):
         
         y1 = np.zeros(0)
@@ -810,7 +795,4 @@ class FBCSP_V4():
         fig, ax = plt.subplots(figsize = figsize)
         ax.bar(x1, y1, width = width, color = 'b', align='center')
         ax.bar(x2, y2, width = width, color = 'r', align='center')
-        
-        
-
         
