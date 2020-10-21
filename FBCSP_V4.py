@@ -627,23 +627,10 @@ class FBCSP_V4():
         else:
             y_prob = np.zeros(2)
         
-        # for feat in features_input:
-        #     # print(feat)
-        #     fig, ax = plt.subplots(1, 1, figsize = (15, 10))
-        #     x1 = np.linspace(1, features_input.shape[1], features_input.shape[1])
-        #     # y1 = np.mean(feat, 0)
-        #     ax.bar(x1, feat, width = 0.3, color = 'b', align='center')
-        #     ax.set_ylim([-3, 3])
-        
         return y, y_prob
     
     
-    def extractFeatures(self, trials_matrix):
-        # Create index for select the first and last m column
-        # idx = []
-        # for i in range(self.n_features): idx.append(i)
-        # for i in reversed(idx): idx.append(-(i + 1))
-        
+    def extractFeatures(self, trials_matrix): 
         # List for the features
         features_list = []
         
