@@ -26,6 +26,7 @@ class FBCSP_Multiclass():
         if(print_var): start = time.time()
         
         self.fs = fs
+        self.nw = n_w
         self.n_features = n_features
         
         # List of classifier
@@ -47,7 +48,7 @@ class FBCSP_Multiclass():
             # Create the FBCSP object and train it
             if(classifier != None): tmp_FBCSP_clf = FBCSP_V4(tmp_binary_dict, fs, n_w = n_w, n_features = n_features, classifier = classifier, print_var = print_var)
             else: tmp_FBCSP_clf = FBCSP_V4(tmp_binary_dict, fs, n_w = n_w, n_features = n_features, print_var = print_var)
-            if(print_var): print("FBCSP object and training complete")
+            if(print_var): print("FBCSP object creation and training complete")
             
             # Add the classifier to the list
             self.FBCSP_list.append(tmp_FBCSP_clf)

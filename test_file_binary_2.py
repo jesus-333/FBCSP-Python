@@ -12,7 +12,7 @@ from FBCSP_support_function import cleanWorkspaec
 
 #%%
 from FBCSP_support_function import loadDatasetD1_100Hz, computeTrialD1_100Hz
-from FBCSP_V3 import FBCSP_V3
+# from FBCSP_V3 import FBCSP_V3
 from FBCSP_V4 import FBCSP_V4
 
 import numpy as np

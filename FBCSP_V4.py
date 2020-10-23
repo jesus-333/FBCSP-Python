@@ -251,9 +251,6 @@ class FBCSP_V4():
                 
                 # Features evaluation
                 features_dict[key] = self.logVarEvaluation(tmp_trial)
-                
-                # Spatial filtering and Features evaluation ()
-                # features_dict[key] = self.featuresEvaluation(filt_trial_dict[key], W)
             
             self.features_band_list.append(features_dict)
         
