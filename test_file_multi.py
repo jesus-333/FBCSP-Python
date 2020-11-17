@@ -42,10 +42,14 @@ labels_name[4] = 'tongue'
 
 print_var = False
 
-idx_list = [1, 9]
+accuracy_list = []
 
-# for idx in idx_list:
-for idx in range(1, 10):
+idx_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+# idx_list = [1, 2, 3, 6, 7, 8]
+# idx_list = [4]
+
+for idx in idx_list:
+# for idx in range(1, 10):
     print('Subject n.', str(idx))
     
     #- - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -64,7 +68,7 @@ for idx in range(1, 10):
     trials_dict = createTrialsDictD2(trials, labels, labels_name)
     
     FBCSP_multi_clf = FBCSP_Multiclass(trials_dict, fs, print_var = print_var)
-    # FBCSP_multi_clf = FBCSP_Multiclass(trials_dict, fs, classifier = SVC(kernel = 'linear'), print_var = print_var)
+    # FBCSP_multi_clf = FBCSP_Multiclass(trials_dict, fs, classifier = SVC(kernel = 'rbf', probability = True), print_var = print_var)
     
     #- - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Test set
@@ -90,6 +94,7 @@ for idx in range(1, 10):
     # Percentage of correct prediction
     correct_prediction_1 = labels_predict_value[labels_predict_value == labels_true_value_1]
     perc_correct_1 = len(correct_prediction_1)/len(labels_true_value_1)
+    accuracy_list.append(perc_correct_1)
         
     
     print('\nPercentage of correct prediction: ', perc_correct_1)

@@ -11,7 +11,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from FBCSP_V3 import FBCSP_V3
+# from FBCSP_V3 import FBCSP_V3
 from FBCSP_V4 import FBCSP_V4
 
 import time
@@ -107,6 +107,7 @@ class FBCSP_Multiclass():
         # Evaluate the trial(s)
         for clf, i in zip(self.FBCSP_list, range(len(self.FBCSP_list))):
             # Predict label
+            # print(i)
             label, prob = clf.evaluateTrial(trials_matrix)
             
             # Save the results
@@ -154,7 +155,7 @@ class FBCSP_Multiclass():
                 # Cycle through the element of the classifier results
                 for j in range(len(row)):
                
-                    # Retrieve the probability that belongs to that class
+                    # Retrieve the probability that belongs to that class)
                     actual_prob = self.pred_prob_list[j][i, 0]
                     
                     # Evaluate how close is to 0.5
