@@ -38,8 +38,12 @@ class FBCSP_V4():
         self.filtered_band_signal_list = []
         
         # Frequencies band
-        if(freqs_band == None): self.freqs = np.linspace(4, 40, 10)
-        else: self.freqs =  freqs_band
+        if isinstance(freqs_band, np.ndarray):
+            self.freqs = freqs_band
+        elif(freqs_band == None):
+            self.freqs = np.linspace(4, 40, 10)
+        else:
+            raise ValueError('freqs_band must be a Numpy Array')
         
         self.filterBankFunction(filter_order)
         
