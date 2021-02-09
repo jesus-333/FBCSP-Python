@@ -268,6 +268,34 @@ def loadTrueLabel(path):
     labels[labels_copy == 4] = 1
     
     return labels
+
+def loadDatasetD2_Merge(path, idx_list, fs, path_label = None):
+    trials_list = []
+    labels_list = []
+    
+    # Load dataset
+    for idx in idx_list:
+        # Load dataset corresponding to idx
+        data, event_matrix = loadDatasetD2(path, idx)
+        
+        # Extract trials and labels
+        tmp_trials, tmp_labels = computeTrialD2(data, event_matrix, fs, remove_corrupt = False)
+        
+        if(path_label is not None):
+            path_label_subj = path_label + str(idx) + 'E.mat'
+            tmp_labels = np.squeeze(loadmat(path_label_subj)['classlabel'])
+        
+        # Save trials and list
+        trials_list.append(tmp_trials)
+        labels_list.append(tmp_labels)
+        
+    # Merge lists
+    trials = np.concatenate(trials_list)
+    labels = np.concatenate(labels_list)
+    
+    return trials, labels
+        
+        
       
 #%% Other
 
