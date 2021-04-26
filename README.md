@@ -25,5 +25,5 @@ In case you have data with multiple label I also create a second class for multi
 |    6    |   0.4027   |
 |    7    |   0.7743   |
 |    8    |    0.684   |
-|    9    | 0.606 |    **0.725**   |
-|   AVG   | 0.569 |   **0.6251**   |
+|    9    |     0.725  |
+|   AVG   |    0.6251  |
