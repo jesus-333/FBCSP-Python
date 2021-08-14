@@ -45,11 +45,11 @@ print_var = True
 accuracy_list = []
 accuracy_matrix = []
 
-idx_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+# idx_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # idx_list = [1, 2, 3, 6, 7, 8]
-# idx_list = [4]
+idx_list = [4]
 
-repetition = 5
+repetition = 1
 
 #%%
 
@@ -121,7 +121,7 @@ fs = 250
 merge_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 n_w = 2
 n_features = 4
-repetition = 4
+repetition = 2
 
 print_var = True
 
@@ -131,13 +131,24 @@ accuracy_matrix = []
 idx_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 idx_list = [1]
 
-test_on_merge_list = True
+test_on_merge_list = False
+
+labels_name = {}
+labels_name[769] = 'left'
+labels_name[770] = 'right'
+labels_name[771] = 'foot'
+labels_name[772] = 'tongue'
+labels_name[783] = 'unknown'
+labels_name[1] = 'left'
+labels_name[2] = 'right'
+labels_name[3] = 'foot'
+labels_name[4] = 'tongue'
 
 for rep in range(repetition):
     for idx in idx_list:
         print('Subject n.', str(idx))
         
-        # merge_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        merge_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         # merge_list.remove(idx)
         
         #- - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -159,39 +170,55 @@ for rep in range(repetition):
         
         path_test = 'Dataset/D2/v1/Test'
         
+        accuracy_list = []
+        tmp_idx_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         
-        if(test_on_merge_list):
-            path_test_label = 'Dataset/D2/v1/True Label/A0'
-            trials_test, labels_test = loadDatasetD2_Merge(path_test, merge_list, fs = fs, path_label = path_test_label)
+        for idx in tmp_idx_list:
+            if(test_on_merge_list):
+                path_test_label = 'Dataset/D2/v1/True Label/A0'
+                trials_test, labels_test = loadDatasetD2_Merge(path_test, merge_list, fs = fs, path_label = path_test_label)
+                
+            else:
+                path_test_label = 'Dataset/D2/v1/True Label/A0' + str(idx) + 'E.mat'
+                
+                data_test, event_matrix_test = loadDatasetD2(path_test, idx)
+                trials_test, labels_test = computeTrialD2(data_test, event_matrix_test, fs)
             
-        else:
-            path_test_label = 'Dataset/D2/v1/True Label/A0' + str(idx) + 'E.mat'
+                labels_test = np.squeeze(loadmat(path_test_label)['classlabel'])
             
-            data_test, event_matrix_test = loadDatasetD2(path_test, idx)
-            trials_test, labels_test = computeTrialD2(data_test, event_matrix_test, fs)
-        
-            labels_test = np.squeeze(loadmat(path_test_label)['classlabel'])
-        
-        # trials_test = -trials_test
-        labels_predict_value = FBCSP_multi_clf.evaluateTrial(trials_test)
-        
-        labels_confront = np.zeros((len(labels_test), 3))
-        labels_confront[:, 0] = labels_test
-        labels_confront[:, 1] = labels_predict_value
-        
-        a1 = FBCSP_multi_clf.pred_label_array
-        a2 = FBCSP_multi_clf.pred_prob_array
-        a3 = FBCSP_multi_clf.pred_prob_list
-        
-        # Percentage of correct prediction
-        correct_prediction_1 = labels_predict_value[labels_predict_value == labels_test]
-        perc_correct_1 = len(correct_prediction_1)/len(labels_test)
-        accuracy_list.append(perc_correct_1)
-        
-        print('\nPercentage of correct prediction: ', perc_correct_1)
-        print("# # # # # # # # # # # # # # # # # # # # #\n")
+            # trials_test = -trials_test
+            labels_predict_value = FBCSP_multi_clf.evaluateTrial(trials_test)
+            
+            labels_confront = np.zeros((len(labels_test), 3))
+            labels_confront[:, 0] = labels_test
+            labels_confront[:, 1] = labels_predict_value
+            
+            a1 = FBCSP_multi_clf.pred_label_array
+            a2 = FBCSP_multi_clf.pred_prob_array
+            a3 = FBCSP_multi_clf.pred_prob_list
+            
+            # Percentage of correct prediction
+            correct_prediction_1 = labels_predict_value[labels_predict_value == labels_test]
+            perc_correct_1 = len(correct_prediction_1)/len(labels_test)
+            accuracy_list.append(perc_correct_1)
+            
+            print('\nPercentage of correct prediction: ', perc_correct_1)
+            print("# # # # # # # # # # # # # # # # # # # # #\n")
         
     accuracy_matrix.append(accuracy_list)
-    
 
 accuracy_matrix = np.asarray(accuracy_matrix).T
+
+#%%
+
+x = trials_test[0:1]
+time_list = []
+
+for i in range(10000):
+    t_start = time.time()
+    
+    b = FBCSP_multi_clf.evaluateTrial(x)
+    
+    time_list.append(time.time() - t_start)
+    
+print(np.mean(time_list) * (10 ** 3))

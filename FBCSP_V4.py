@@ -263,6 +263,7 @@ class FBCSP_V4():
         self.mutual_information_vector, self.other_info_matrix = self.changeShapeMutualInformationList()
         
         # Select features to use for classification
+        # List of tuple (each tuple contains the number of the band and the number of the features)
         self.classifier_features = self.selectFeatures()
         
         
@@ -289,7 +290,7 @@ class FBCSP_V4():
         Returns
         -------
         features : Numpy 2D-matrix
-            Return the features matrix. DImension will be trials x channel
+            Return the features matrix. DImension will be trials x (n_w * 2)
     
         """
         # Select the first and last n rows of the CSP filtered signal

@@ -12,7 +12,7 @@ from FBCSP_support_function import cleanWorkspaec
 
 #%%
 from FBCSP_support_function import loadDatasetD1_100Hz, computeTrialD1_100Hz
-from FBCSP_V3 import FBCSP_V3
+# from FBCSP_V3 import FBCSP_V3
 from FBCSP_V4 import FBCSP_V4
 
 import numpy as np
@@ -23,12 +23,12 @@ import time
 
 #%%
 n_w = 2
-n_features = 4
+n_features = 8
 
 tmp_string = 'abcdefg'
 tmp_string = 'e'
 
-path = 'Dataset/D1_100Hz/Train/BCICIV_calib_ds1'
+path = 'Dataset/D1_100Hz/v1/Train/BCICIV_calib_ds1'
 high_sampling_dataset = False
 
 # path = 'Dataset/D1_1000Hz/Train/BCICIV_calib_ds1'
