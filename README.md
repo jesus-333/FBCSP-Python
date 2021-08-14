@@ -15,15 +15,15 @@ An evalaution method to classify new trials is implemented with the name *evalua
 ## Multiclass Classification
 In case you have data with multiple label I also create a second class for multiclassification. The class is inside the file "FBCSP_Multiclass.py". The input of the class must be also in this case a dictionary with key the label of the varios trial and element the trials matrix with dimensions "n. trials x n. channels x n.samples". Results for the [dataset 2a](http://www.bbci.de/competition/iv/desc_2a.pdf) of the BCI competition dataset is reported in the table below:
 
-| Subject |  [Kai Keng Ang et al.](https://ieeexplore.ieee.org/document/4634130) | My Results |
-|:-------:|:-----:|:----------:|
-|    1    | 0.676 |    *0.698*   |
-|    2    | 0.417 |    **0.555**   |
-|    3    | 0.745 |    **0.805**   |
-|    4    | 0.481 |   **0.5381**   |
-|    5    | 0.398 |    **0.444**   |
-|    6    | 0.273 |   **0.4027**   |
-|    7    | 0.773 |   *0.7743*   |
-|    8    | 0.755 |    **0.684**   |
-|    9    | 0.606 |    **0.725**   |
-|   AVG   | 0.569 |   **0.6251**   |
+| Subject | Accuracy   |
+|:-------:|:----------:|
+|    1    |    0.698   |
+|    2    |    0.555   |
+|    3    |    0.805   |
+|    4    |   0.5381   |
+|    5    |    0.444   |
+|    6    |   0.4027   |
+|    7    |   0.7743   |
+|    8    |    0.684   |
+|    9    |     0.725  |
+|   AVG   |    0.6251  |
