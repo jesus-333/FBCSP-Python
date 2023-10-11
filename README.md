@@ -3,7 +3,7 @@ Python implemementation of the FBCSP algorithm. Based on my previous work on the
 
 This repository contain an extension of the CSP (Common Spatial Pattern) known as FBCSP (Filter-Bank CSP). This algorithm is used to extract features and classify EEG trials. The algorithm is used for binary classification.
 
-Version 4 (V4) is based on the work of [Kai Keng Ang et al.](https://ieeexplore.ieee.org/document/4634130) easily available following the link. Also the multiclass variant is based on a strategy described in that article. Version 1 (V1) and version 2 (V2) are the first implementation and contain error. They are not supposed to be used and lack the method for complete training and evaluation. Version 3 (V3) work's without big problem but I improved some function in the 4.
+Version 4 (V4) is based on the work of [Kai Keng Ang et al.](https://ieeexplore.ieee.org/document/4634130) easily available following the link. Also the multiclass variant is based on a strategy described in that article. Version 1 (V1) and version 2 (V2) are the first implementations and contain errors. They are not supposed to be used and lack the method for complete training and evaluation. Version 3 (V3) work's without big problem but I optimized some function in the Version 4 (V4).
 
 ## How the class work
 The class must receive in input with the initialization a training set inside a dictionary. The keys of the dictionary must be the label of the two class and each element must be a numpy matrix of dimension "n. trials x n. channels x n.samples". The class must also receive the frequency sampling of the signal.
