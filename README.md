@@ -1,6 +1,22 @@
 # FBCSP Python
 Python implemementation of the FBCSP algorithm. Based on my previous work on the CSP algorithm available at this [link](https://github.com/jesus-333/CSP-Python).
 
+If you use this code cite
+
+```
+@INPROCEEDINGS{Zancanaro_CIBC_2021,
+  author={Zancanaro, Alberto and Cisotto, Giulia and Paulo, João Ruivo and Pires, Gabriel and Nunes, Urbano J.},
+  booktitle={2021 IEEE Conference on Computational Intelligence in Bioinformatics and Computational Biology (CIBCB)}, 
+  title={CNN-based Approaches For Cross-Subject Classification in Motor Imagery: From the State-of-The-Art to DynamicNet}, 
+  year={2021},
+  volume={},
+  number={},
+  pages={1-7},
+  keywords={Deep learning;Image coding;Tools;Brain modeling;Feature extraction;Electroencephalography;Reliability},
+  doi={10.1109/CIBCB49929.2021.9562821}
+}
+```
+
 This repository contain an extension of the CSP (Common Spatial Pattern) known as FBCSP (Filter-Bank CSP). This algorithm is used to extract features and classify EEG trials. The algorithm is used for binary classification.
 
 Version 4 (V4) is based on the work of [Kai Keng Ang et al.](https://ieeexplore.ieee.org/document/4634130) easily available following the link. Also the multiclass variant is based on a strategy described in that article. Version 1 (V1) and version 2 (V2) are the first implementations and contain errors. They are not supposed to be used and lack the method for complete training and evaluation. Version 3 (V3) work's without big problem but I optimized some function in the Version 4 (V4).
